@@ -1,0 +1,23 @@
+.page {
+  .list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    margin-top: 16px;
+
+    .list-el {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      text-align: center;
+      width: 400px;
+      height: 300px;
+      border: 4px solid #474747;
+      margin: 16px;
+      padding: 8px;
+    }
+  }
+}

@@ -1,0 +1,32 @@
+.header {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  width: calc(100% - 32px);
+  border-bottom: 4px solid #474747;
+
+  .btn-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+
+    .btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      border: 2px solid #474747;
+      width: 120px;
+      height: 40px;
+      cursor: pointer;
+
+      &:hover {
+        transform: scale(1.05);
+        transition: 0.25s;
+      }
+    }
+  }
+}
