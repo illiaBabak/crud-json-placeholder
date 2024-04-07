@@ -2,15 +2,12 @@ import { Album, AlbumResponse } from 'src/types/albums';
 import { Post, PostResponse } from 'src/types/posts';
 import { User, UserResponse } from 'src/types/users';
 
+const isObj = (val: unknown): val is object => !!val && typeof val === 'object';
+
+const isString = (val: unknown): val is string => typeof val === 'string';
+
 const isPost = (data: unknown): data is Post => {
-  return (
-    !!data &&
-    typeof data === 'object' &&
-    'body' in data &&
-    'title' in data &&
-    typeof data.body === 'string' &&
-    typeof data.title === 'string'
-  );
+  return isObj(data) && 'body' in data && 'title' in data && isString(data.body) && isString(data.title);
 };
 
 const isPostArr = (data: unknown): data is Post[] => {
@@ -18,11 +15,11 @@ const isPostArr = (data: unknown): data is Post[] => {
 };
 
 export const isPostResponse = (data: unknown): data is PostResponse => {
-  return !!data && typeof data === 'object' && 'data' in data && isPostArr(data.data);
+  return isObj(data) && 'data' in data && isPostArr(data.data);
 };
 
 const isAlbum = (data: unknown): data is Album => {
-  return !!data && typeof data === 'object' && 'title' in data && typeof data.title === 'string';
+  return isObj(data) && 'title' in data && isString(data.title);
 };
 
 const isAlbumArr = (data: unknown): data is Album[] => {
@@ -30,33 +27,30 @@ const isAlbumArr = (data: unknown): data is Album[] => {
 };
 
 export const isAlbumResponse = (data: unknown): data is AlbumResponse => {
-  return !!data && typeof data === 'object' && 'data' in data && isAlbumArr(data.data);
+  return isObj(data) && 'data' in data && isAlbumArr(data.data);
 };
 
 const isUser = (data: unknown): data is User => {
   return (
-    !!data &&
-    typeof data === 'object' &&
+    isObj(data) &&
     'address' in data &&
-    !!data.address &&
-    typeof data.address === 'object' &&
+    isObj(data.address) &&
     'city' in data.address &&
-    typeof data.address.city === 'string' &&
+    isString(data.address.city) &&
     'street' in data.address &&
-    typeof data.address.street === 'string' &&
+    isString(data.address.street) &&
     'company' in data &&
-    !!data.company &&
-    typeof data.company === 'object' &&
+    isObj(data.company) &&
     'name' in data.company &&
-    typeof data.company.name === 'string' &&
+    isString(data.company.name) &&
     'email' in data &&
     'name' in data &&
     'phone' in data &&
     'username' in data &&
-    typeof data.email === 'string' &&
-    typeof data.name === 'string' &&
-    typeof data.phone === 'string' &&
-    typeof data.username === 'string'
+    isString(data.email) &&
+    isString(data.name) &&
+    isString(data.phone) &&
+    isString(data.username)
   );
 };
 
@@ -65,5 +59,5 @@ const isUserArr = (data: unknown): data is User[] => {
 };
 
 export const isUserResponse = (data: unknown): data is UserResponse => {
-  return !!data && typeof data === 'object' && 'data' in data && isUserArr(data.data);
+  return isObj(data) && 'data' in data && isUserArr(data.data);
 };
