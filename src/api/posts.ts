@@ -1,20 +1,21 @@
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
-import axios, { AxiosResponse } from 'axios';
-import { PostResponse } from 'src/types/posts';
-import { isPostResponse } from 'src/utils/guards';
+import { Post } from 'src/types/types';
+import { isPostArr } from 'src/utils/guards';
 
-export const getPosts = async (): Promise<PostResponse | undefined> => {
+export const getPosts = async (): Promise<Post[] | undefined> => {
   try {
-    const response: AxiosResponse<PostResponse> = await axios.get(`https://jsonplaceholder.typicode.com/posts`);
+    const response = await fetch(`https://jsonplaceholder.typicode.com/posts`);
 
-    if (isPostResponse(response)) return response;
+    const responseData: unknown = await response.json();
+
+    if (isPostArr(responseData)) return responseData;
     else throw new Error('Something went wrong with API request (posts)');
   } catch {
     throw new Error('Unexpected result (posts)');
   }
 };
 
-export const useQueryPosts = (): UseQueryResult<PostResponse> => {
+export const useQueryPosts = (): UseQueryResult<Post[]> => {
   return useQuery({
     queryKey: ['posts'],
     queryFn: async () => {

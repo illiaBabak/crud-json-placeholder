@@ -4,9 +4,7 @@ import { Header } from 'src/components/Header';
 import { Loader } from 'src/components/Loader';
 
 export const PostsPage = (): JSX.Element => {
-  const { data, isError, isFetching } = useQueryPosts();
-
-  const posts = data?.data;
+  const { data: posts, isError, isFetching } = useQueryPosts();
 
   return (
     <>

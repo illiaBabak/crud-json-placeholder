@@ -1,6 +1,4 @@
-import { Album, AlbumResponse } from 'src/types/albums';
-import { Post, PostResponse } from 'src/types/posts';
-import { User, UserResponse } from 'src/types/users';
+import { Post, Album, User } from 'src/types/types';
 
 const isObj = (val: unknown): val is object => !!val && typeof val === 'object';
 
@@ -10,24 +8,15 @@ const isPost = (data: unknown): data is Post => {
   return isObj(data) && 'body' in data && 'title' in data && isString(data.body) && isString(data.title);
 };
 
-const isPostArr = (data: unknown): data is Post[] => {
+export const isPostArr = (data: unknown): data is Post[] => {
   return Array.isArray(data) && data.every((el) => isPost(el));
 };
-
-export const isPostResponse = (data: unknown): data is PostResponse => {
-  return isObj(data) && 'data' in data && isPostArr(data.data);
-};
-
 const isAlbum = (data: unknown): data is Album => {
   return isObj(data) && 'title' in data && isString(data.title);
 };
 
-const isAlbumArr = (data: unknown): data is Album[] => {
+export const isAlbumArr = (data: unknown): data is Album[] => {
   return Array.isArray(data) && data.every((el) => isAlbum(el));
-};
-
-export const isAlbumResponse = (data: unknown): data is AlbumResponse => {
-  return isObj(data) && 'data' in data && isAlbumArr(data.data);
 };
 
 const isUser = (data: unknown): data is User => {
@@ -54,10 +43,6 @@ const isUser = (data: unknown): data is User => {
   );
 };
 
-const isUserArr = (data: unknown): data is User[] => {
+export const isUserArr = (data: unknown): data is User[] => {
   return Array.isArray(data) && data.every((user) => isUser(user));
-};
-
-export const isUserResponse = (data: unknown): data is UserResponse => {
-  return isObj(data) && 'data' in data && isUserArr(data.data);
 };

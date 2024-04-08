@@ -1,3 +1,8 @@
+export type Post = {
+  body: string;
+  title: string;
+};
+
 export type User = {
   address: {
     city: string;
@@ -14,6 +19,6 @@ export type User = {
   username: string;
 };
 
-export type UserResponse = {
-    data: User[];
-}
+export type Album = {
+  title: string;
+};

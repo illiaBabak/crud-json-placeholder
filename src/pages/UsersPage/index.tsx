@@ -4,9 +4,7 @@ import { Header } from 'src/components/Header';
 import { Loader } from 'src/components/Loader';
 
 export const UsersPage = (): JSX.Element => {
-  const { data, isError, isFetching } = useQueryUsers();
-
-  const users = data?.data;
+  const { data: users, isError, isFetching } = useQueryUsers();
 
   return (
     <>
