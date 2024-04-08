@@ -1,11 +1,11 @@
 import { useNavigate } from 'react-router-dom';
 
-export const Header = (): JSX.Element => {
+export const Header = ({ title }: { title: string }): JSX.Element => {
   const navigate = useNavigate();
 
   return (
     <div className='header'>
-      <h1 className='title'>Json data</h1>
+      <h1 className='title'>{title}</h1>
       <div className='btn-container'>
         <div className='btn' onClick={() => navigate('/posts')}>
           Posts

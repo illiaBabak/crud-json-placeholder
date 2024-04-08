@@ -1,6 +1,7 @@
 import { Header } from '../Header';
 import { Alert } from '../Alert';
 import { Loader } from '../Loader';
+import { capitalize } from 'src/utils/capitalize';
 
 type Props = {
   title: string;
@@ -13,7 +14,7 @@ export const Page = ({ title, listElements, isError, isFetching }: Props): JSX.E
   return (
     <>
       <div className={`page-${title}`}>
-        <Header />
+        <Header title={capitalize(title)} />
         {isFetching ? <Loader /> : <div className='list'>{listElements}</div>}
       </div>
 
