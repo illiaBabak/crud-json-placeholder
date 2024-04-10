@@ -1,8 +1,8 @@
 import { UseQueryResult, useQuery } from '@tanstack/react-query';
 import { Post } from 'src/types/types';
-import { isPostArr } from 'src/utils/guards';
+import { isPost, isPostArr } from 'src/utils/guards';
 
-export const getPosts = async (): Promise<Post[] | undefined> => {
+const getPosts = async (): Promise<Post[] | undefined> => {
   try {
     const response = await fetch(`https://jsonplaceholder.typicode.com/posts`);
 
@@ -22,4 +22,24 @@ export const useQueryPosts = (): UseQueryResult<Post[]> => {
       return await getPosts();
     },
   });
+};
+
+export const addPost = async (post: Post): Promise<Post | undefined> => {
+  const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+    method: 'POST',
+    body: JSON.stringify({
+      title: post.title,
+      body: post.body,
+      userId: 1,
+    }),
+    headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    },
+  });
+
+  if (!response.ok) throw new Error('Something went wrong with adding a new post');
+
+  const newPost: unknown = await response.json();
+
+  return isPost(newPost) ? newPost : undefined;
 };

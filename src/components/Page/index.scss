@@ -1,6 +1,11 @@
 .page-posts,
 .page-albums,
 .page-users {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+
   .list {
     display: flex;
     flex-direction: row;
@@ -8,6 +13,25 @@
     justify-content: center;
     align-items: center;
     margin-top: 16px;
+  }
+
+  .show-window-btn {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 6px solid #3867d6;
+    border-radius: 2px;
+    background-color: #4b7bec;
+    color: white;
+    width: 160px;
+    height: 50px;
+    margin-top: 24px;
+    cursor: pointer;
+
+    &:hover {
+      transform: scale(1.05);
+      transition: 0.25s;
+    }
   }
 }
 
@@ -71,6 +95,8 @@
       .user-row {
         display: flex;
         flex-direction: row;
+        justify-content: space-around;
+        width: 100%;
 
         .user-col {
           display: flex;

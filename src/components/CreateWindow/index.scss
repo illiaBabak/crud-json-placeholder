@@ -1,0 +1,76 @@
+.create-window-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+  background-color: rgba(88, 87, 87, 0.459);
+  cursor: pointer;
+
+  .create-window {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    flex-direction: column;
+    width: 400px;
+    height: 590px;
+    border: 8px solid #3867d6;
+    border-radius: 2px;
+    color: #4b7bec;
+    background-color: white;
+    cursor: auto;
+
+    .create-window-row {
+      display: flex;
+      flex-direction: row;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+
+      .create-window-input {
+        width: 180px;
+        cursor: pointer;
+      }
+
+      .close-window-btn {
+        font-size: 28px;
+        cursor: pointer;
+
+        &:hover {
+          transform: scale(1.05);
+          transition: 0.25s;
+        }
+      }
+    }
+
+    .create-btn {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 170px;
+      height: 30px;
+      border: 4px solid #3867d6;
+      border-radius: 2px;
+      cursor: pointer;
+
+      &:hover {
+        transform: scale(1.05);
+        transition: 0.25s;
+      }
+    }
+
+    .disabled-btn {
+      cursor: not-allowed;
+      filter: grayscale(90%);
+
+      &:hover {
+        transform: scale(1);
+        transition: 0s;
+      }
+    }
+  }
+}
