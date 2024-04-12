@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { addPost, useQueryPosts } from 'src/api/posts';
+import { addPost, deletePost, useQueryPosts } from 'src/api/posts';
 import { Page } from 'src/components/Page';
 import { Post } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
@@ -10,6 +10,8 @@ export const PostsPage = (): JSX.Element => {
   const [postValues, setPostValues] = useState<Post>({
     title: '',
     body: '',
+    id: posts?.length ?? 1,
+    userId: 1,
   });
   const queryClient = useQueryClient();
 
@@ -30,6 +32,23 @@ export const PostsPage = (): JSX.Element => {
     },
   });
 
+  const deletePostMutation = useMutation({
+    mutationFn: (post: Post) => deletePost(post),
+    onMutate: async (deletedPost: Post) => {
+      await queryClient.cancelQueries({ queryKey: ['posts'] });
+
+      const prevVal: Post[] | undefined = queryClient.getQueryData(['posts']);
+
+      queryClient.setQueryData(['posts'], (prev: Post[]) => prev.filter((post) => post.id !== deletedPost.id));
+
+      return { prevVal };
+    },
+
+    onError: (_err, _post, context) => {
+      queryClient.setQueryData(['posts'], context?.prevVal);
+    },
+  });
+
   const handleMutate = () => postsMutation.mutate(postValues);
 
   const postElements =
@@ -38,6 +57,9 @@ export const PostsPage = (): JSX.Element => {
         <div className='list-el' key={`post-${el.title}-${index}`}>
           <h3>{el.title}</h3>
           <p>{el.body}</p>
+          <div className='delete-el-btn' onClick={() => deletePostMutation.mutate(el)}>
+            Delete
+          </div>
         </div>
       );
     }) ?? [];
@@ -71,6 +93,22 @@ export const PostsPage = (): JSX.Element => {
             setPostValues((prev) => ({
               ...prev,
               body: val,
+            }));
+          }}
+        />
+      </div>
+
+      <div className='create-window-row'>
+        <h4>User ID</h4>
+        <input
+          type='number'
+          className='create-window-input'
+          value={postValues.userId}
+          onChange={(e) => {
+            const val = Number(e.currentTarget.value);
+            setPostValues((prev) => ({
+              ...prev,
+              userId: val,
             }));
           }}
         />

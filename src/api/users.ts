@@ -41,3 +41,11 @@ export const addUser = async (user: User): Promise<User | undefined> => {
 
   return isUser(newUser) ? newUser : undefined;
 };
+
+export const deleteUser = async (user: User): Promise<undefined> => {
+  const response = await fetch(`https://jsonplaceholder.typicode.com/users/${user.id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) throw new Error('Something went wrong with deleting a user');
+};

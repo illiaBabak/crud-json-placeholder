@@ -38,3 +38,11 @@ export const addAlbum = async (album: Album): Promise<Album | undefined> => {
 
   return isAlbum(newAlbum) ? newAlbum : undefined;
 };
+
+export const deleteAlbum = async (album: Album): Promise<undefined> => {
+  const response = await fetch(`https://jsonplaceholder.typicode.com/albums/${album.id}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) if (!response.ok) throw new Error('Something went wrong with deleting a post');
+};

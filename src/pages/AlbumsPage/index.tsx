@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { addAlbum, useQueryAlbums } from 'src/api/albums';
+import { addAlbum, deleteAlbum, useQueryAlbums } from 'src/api/albums';
 import { Page } from 'src/components/Page';
 import { Album } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
@@ -9,6 +9,8 @@ export const AlbumsPage = (): JSX.Element => {
   const { data: albums, isError, isFetching } = useQueryAlbums();
   const [albumValues, setAlbumValues] = useState<Album>({
     title: '',
+    userId: 1,
+    id: albums?.length ?? 1,
   });
   const queryClient = useQueryClient();
 
@@ -29,12 +31,32 @@ export const AlbumsPage = (): JSX.Element => {
     },
   });
 
+  const deleteAlbumMutation = useMutation({
+    mutationFn: (album: Album) => deleteAlbum(album),
+    onMutate: async (deletedAlbum: Album) => {
+      await queryClient.cancelQueries({ queryKey: ['albums'] });
+
+      const prevVal: Album[] | undefined = queryClient.getQueryData(['albums']);
+
+      queryClient.setQueryData(['albums'], (prev: Album[]) => prev.filter((album) => album.id !== deletedAlbum.id));
+
+      return { prevVal };
+    },
+
+    onError: (_err, _album, context) => {
+      queryClient.setQueryData(['albums'], context?.prevVal);
+    },
+  });
+
   const handleMutate = () => albumsMutation.mutate(albumValues);
 
   const albumElements =
     albums?.map((album, index) => (
       <div className='list-el' key={`album-${album.title}-${index}`}>
         <h3>{album.title}</h3>
+        <div className='delete-el-btn' onClick={() => deleteAlbumMutation.mutate(album)}>
+          Delete
+        </div>
       </div>
     )) ?? [];
 
@@ -46,7 +68,13 @@ export const AlbumsPage = (): JSX.Element => {
           type='text'
           className='create-window-input'
           value={albumValues.title}
-          onChange={(e) => setAlbumValues({ title: e.currentTarget.value })}
+          onChange={(e) => {
+            const val = e.currentTarget.value;
+            setAlbumValues((prev) => ({
+              ...prev,
+              title: val,
+            }));
+          }}
         />
       </div>
     </>

@@ -1,11 +1,23 @@
-import { Post, Album, User } from 'src/types/types';
+import { Post, Album, User, UserAddress, UserCompany } from 'src/types/types';
 
 const isObj = (val: unknown): val is object => !!val && typeof val === 'object';
 
-const isString = (val: unknown): val is string => typeof val === 'string';
+export const isString = (val: unknown): val is string => typeof val === 'string';
+
+export const isNumber = (val: unknown): val is number => typeof val === 'number';
 
 export const isPost = (data: unknown): data is Post => {
-  return isObj(data) && 'body' in data && 'title' in data && isString(data.body) && isString(data.title);
+  return (
+    isObj(data) &&
+    'body' in data &&
+    'title' in data &&
+    'id' in data &&
+    'userId' in data &&
+    isString(data.body) &&
+    isString(data.title) &&
+    isNumber(data.id) &&
+    isNumber(data.userId)
+  );
 };
 
 export const isPostArr = (data: unknown): data is Post[] => {
@@ -13,34 +25,46 @@ export const isPostArr = (data: unknown): data is Post[] => {
 };
 
 export const isAlbum = (data: unknown): data is Album => {
-  return isObj(data) && 'title' in data && isString(data.title);
+  return (
+    isObj(data) &&
+    'title' in data &&
+    isString(data.title) &&
+    'id' in data &&
+    'userId' in data &&
+    isNumber(data.id) &&
+    isNumber(data.userId)
+  );
 };
 
 export const isAlbumArr = (data: unknown): data is Album[] => {
   return Array.isArray(data) && data.every((el) => isAlbum(el));
 };
 
+export const isUserAddress = (data: unknown): data is UserAddress => {
+  return isObj(data) && 'city' in data && 'street' in data && isString(data.city) && isString(data.street);
+};
+
+export const isUserCompany = (data: unknown): data is UserCompany => {
+  return isObj(data) && 'name' in data && isString(data.name);
+};
+
 export const isUser = (data: unknown): data is User => {
   return (
     isObj(data) &&
     'address' in data &&
-    isObj(data.address) &&
-    'city' in data.address &&
-    isString(data.address.city) &&
-    'street' in data.address &&
-    isString(data.address.street) &&
+    isUserAddress(data.address) &&
     'company' in data &&
-    isObj(data.company) &&
-    'name' in data.company &&
-    isString(data.company.name) &&
+    isUserCompany(data.company) &&
     'email' in data &&
     'name' in data &&
     'phone' in data &&
     'username' in data &&
+    'id' in data &&
     isString(data.email) &&
     isString(data.name) &&
     isString(data.phone) &&
-    isString(data.username)
+    isString(data.username) &&
+    isNumber(data.id)
   );
 };
 

@@ -30,6 +30,7 @@ export const addPost = async (post: Post): Promise<Post | undefined> => {
     body: JSON.stringify({
       title: post.title,
       body: post.body,
+      id: post.id,
       userId: 1,
     }),
     headers: {
@@ -42,4 +43,12 @@ export const addPost = async (post: Post): Promise<Post | undefined> => {
   const newPost: unknown = await response.json();
 
   return isPost(newPost) ? newPost : undefined;
+};
+
+export const deletePost = async (post: Post): Promise<undefined> => {
+  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/{${post.id}}`, {
+    method: 'DELETE',
+  });
+
+  if (!response.ok) throw new Error('Something went wrong with deleting a post');
 };

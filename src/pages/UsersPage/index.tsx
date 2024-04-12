@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
-import { addUser, useQueryUsers } from 'src/api/users';
+import { addUser, deleteUser, useQueryUsers } from 'src/api/users';
 import { Page } from 'src/components/Page';
 import { User } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
@@ -21,6 +21,7 @@ export const UsersPage = (): JSX.Element => {
     name: '',
     phone: '',
     username: '',
+    id: users?.length ?? 1,
   });
   const queryClient = useQueryClient();
 
@@ -37,6 +38,23 @@ export const UsersPage = (): JSX.Element => {
     },
 
     onError: (_err, _newUser, context) => {
+      queryClient.setQueryData(['users'], context?.prevVal);
+    },
+  });
+
+  const userDeleteMutation = useMutation({
+    mutationFn: (user: User) => deleteUser(user),
+    onMutate: async (deletedUser: User) => {
+      await queryClient.cancelQueries({ queryKey: ['users'] });
+
+      const prevVal: User[] | undefined = queryClient.getQueryData(['users']);
+
+      queryClient.setQueryData(['users'], (prev: User[]) => prev.filter((user) => user.id !== deletedUser.id));
+
+      return { prevVal };
+    },
+
+    onError: (_err, _user, context) => {
       queryClient.setQueryData(['users'], context?.prevVal);
     },
   });
@@ -66,6 +84,10 @@ export const UsersPage = (): JSX.Element => {
               <p>City: {user.address.city}</p>
               <p>Street: {user.address.street}</p>
             </div>
+          </div>
+
+          <div className='delete-el-btn' onClick={() => userDeleteMutation.mutate(user)}>
+            Delete
           </div>
         </div>
       );
