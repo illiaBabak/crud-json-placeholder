@@ -5,18 +5,18 @@ import { Album } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
 
 export const AlbumsPage = (): JSX.Element => {
-  const { data: albums, isError, isFetching } = useQueryAlbums();
+  const { data: albums, isError, isLoading } = useQueryAlbums();
   const [albumValues, setAlbumValues] = useState<Album>({
     title: '',
     userId: 1,
-    id: albums?.length ?? 1,
+    id: 0,
   });
 
   const { mutateAsync: addAlbum } = useAddAlbum();
 
   const { mutateAsync: deleteAlbum } = useDeleteAlbum();
 
-  const handleMutate = () => addAlbum(albumValues);
+  const handleMutate = () => addAlbum({ ...albumValues, id: albums?.length ?? 0 });
 
   const albumElements =
     albums?.map((album, index) => (
@@ -52,7 +52,7 @@ export const AlbumsPage = (): JSX.Element => {
     <Page
       title='albums'
       isError={isError}
-      isFetching={isFetching}
+      isLoading={isLoading}
       listElements={albumElements}
       changeData={handleMutate}
       inputs={albumInputs}

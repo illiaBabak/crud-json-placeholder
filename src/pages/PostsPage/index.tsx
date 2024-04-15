@@ -5,11 +5,11 @@ import { Post } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
 
 export const PostsPage = (): JSX.Element => {
-  const { data: posts, isError, isFetching } = useQueryPosts();
+  const { data: posts, isError, isLoading } = useQueryPosts();
   const [postValues, setPostValues] = useState<Post>({
     title: '',
     body: '',
-    id: posts?.length ?? 0,
+    id: 0,
     userId: 1,
   });
 
@@ -17,7 +17,7 @@ export const PostsPage = (): JSX.Element => {
 
   const { mutateAsync: deletePost } = useDeletePost();
 
-  const handleMutate = () => createPost(postValues);
+  const handleMutate = () => createPost({ ...postValues, id: posts?.length ?? 0 });
 
   const postElements =
     posts?.map((el, index) => {
@@ -89,7 +89,7 @@ export const PostsPage = (): JSX.Element => {
       <Page
         title='posts'
         isError={isError}
-        isFetching={isFetching}
+        isLoading={isLoading}
         listElements={postElements}
         changeData={handleMutate}
         inputs={postInputs}

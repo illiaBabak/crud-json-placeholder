@@ -8,7 +8,7 @@ type Props = {
   title: string;
   listElements: JSX.Element[];
   isError: boolean;
-  isFetching: boolean;
+  isLoading: boolean;
   inputs: JSX.Element;
   changeData: () => void;
   isDisabledBtn: boolean;
@@ -18,7 +18,7 @@ export const Page = ({
   title,
   listElements,
   isError,
-  isFetching,
+  isLoading,
   changeData,
   inputs,
   isDisabledBtn,
@@ -36,7 +36,7 @@ export const Page = ({
         <div className='show-window-btn' onClick={() => setShouldShowCreateWindow(true)}>
           Create a new {singularWord}
         </div>
-        {isFetching ? <Loader /> : <div className='list'>{listElements}</div>}
+        {isLoading ? <Loader /> : <div className='list'>{listElements}</div>}
       </div>
 
       {isError && <Alert />}

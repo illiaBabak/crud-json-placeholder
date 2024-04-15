@@ -5,7 +5,7 @@ import { User } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
 
 export const UsersPage = (): JSX.Element => {
-  const { data: users, isError, isFetching } = useQueryUsers();
+  const { data: users, isError, isLoading } = useQueryUsers();
   const [userValues, setUserValues] = useState<User>({
     address: {
       city: '',
@@ -20,14 +20,14 @@ export const UsersPage = (): JSX.Element => {
     name: '',
     phone: '',
     username: '',
-    id: users?.length ?? 1,
+    id: 0,
   });
 
   const { mutateAsync: addUser } = useAddUser();
 
   const { mutateAsync: deleteUser } = useDeleteUser();
 
-  const handleMutate = () => addUser(userValues);
+  const handleMutate = () => addUser({ ...userValues, id: users?.length ?? 0 });
 
   const handleInputChange = (val: string, fieldName: string) => {
     setUserValues((prevState) => ({
@@ -170,7 +170,7 @@ export const UsersPage = (): JSX.Element => {
       <Page
         title='users'
         isError={isError}
-        isFetching={isFetching}
+        isLoading={isLoading}
         listElements={usersElements}
         inputs={usersInputs}
         changeData={handleMutate}
