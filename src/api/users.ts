@@ -26,6 +26,18 @@ const deleteUser = async (userId: number): Promise<undefined> => {
   if (!response.ok) throw new Error('Something went wrong with deleting a user');
 };
 
+const editUser = async (user: User): Promise<void> => {
+  const response = await fetch(`https://jsonplaceholder.typicode.com/users/${user.id}`, {
+    method: 'PUT',
+    body: JSON.stringify(user),
+    headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    },
+  });
+
+  if (!response.ok) throw new Error('Something went wrong with editing a user');
+};
+
 const getUsers = async (): Promise<User[] | undefined> => {
   try {
     const response = await fetch(`https://jsonplaceholder.typicode.com/users`);
@@ -101,6 +113,45 @@ export const useDeleteUser = (): UseMutationResult<
     },
 
     onError: (_err, _user, context) => {
+      queryClient.setQueryData(['users'], context?.prevVal);
+    },
+  });
+};
+
+export const useEditUser = (): UseMutationResult<
+  void,
+  Error,
+  User,
+  {
+    prevVal: User[] | undefined;
+  }
+> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['edit_user'],
+    mutationFn: editUser,
+    onMutate: async (editedUser: User) => {
+      await queryClient.cancelQueries({ queryKey: ['users'] });
+
+      const prevVal = queryClient.getQueryData<User[] | undefined>(['users']);
+
+      const editedUserIndex = prevVal?.findIndex((user) => user.id === editedUser.id);
+
+      if (!editedUserIndex && editedUserIndex !== 0) return;
+
+      const updatedUsers = [
+        ...(prevVal ?? []).slice(0, editedUserIndex),
+        editedUser,
+        ...(prevVal ?? []).slice(editedUserIndex + 1),
+      ];
+
+      queryClient.setQueryData(['users'], updatedUsers);
+
+      return { prevVal };
+    },
+
+    onError: (_, __, context) => {
       queryClient.setQueryData(['users'], context?.prevVal);
     },
   });

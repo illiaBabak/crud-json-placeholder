@@ -1,30 +1,54 @@
-import { useState } from 'react';
-import { useAddAlbum, useDeleteAlbum, useQueryAlbums } from 'src/api/albums';
+import { useContext, useState } from 'react';
+import { useAddAlbum, useDeleteAlbum, useEditAlbum, useQueryAlbums } from 'src/api/albums';
 import { Page } from 'src/components/Page';
+import { GlobalContext } from 'src/root';
 import { Album } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
 
+const DEFAULT_VALUES = {
+  title: '',
+  userId: 1,
+  id: 0,
+};
+
 export const AlbumsPage = (): JSX.Element => {
   const { data: albums, isError, isLoading } = useQueryAlbums();
-  const [albumValues, setAlbumValues] = useState<Album>({
-    title: '',
-    userId: 1,
-    id: 0,
-  });
+  const { setShouldShowCreateWindow } = useContext(GlobalContext);
+  const [editedAlbum, setEditedAlbum] = useState<Album | null>(null);
+  const [albumValues, setAlbumValues] = useState<Album>(DEFAULT_VALUES);
 
   const { mutateAsync: addAlbum } = useAddAlbum();
 
   const { mutateAsync: deleteAlbum } = useDeleteAlbum();
 
+  const { mutateAsync: editAlbum } = useEditAlbum();
+
   const handleMutate = () => addAlbum({ ...albumValues, id: albums?.length ?? 0 });
+
+  const handleEdit = () => editAlbum(editedAlbum ?? DEFAULT_VALUES);
+
+  const removeEdit = () => setEditedAlbum(null);
 
   const albumElements =
     albums?.map((album, index) => (
       <div className='list-el' key={`album-${album.title}-${index}`}>
         <h3>{album.title}</h3>
-        <div className='delete-el-btn' onClick={() => deleteAlbum(album.id)}>
-          Delete
+        <div className='container-el-btn'>
+          <div className='delete-el-btn' onClick={() => deleteAlbum(album.id)}>
+            Delete
+          </div>
+          <div
+            className='edit-el-btn'
+            onClick={() => {
+              setShouldShowCreateWindow(true);
+              setEditedAlbum(album);
+            }}
+          >
+            Edit
+          </div>
         </div>
+
+        <div></div>
       </div>
     )) ?? [];
 
@@ -35,13 +59,25 @@ export const AlbumsPage = (): JSX.Element => {
         <input
           type='text'
           className='create-window-input'
-          value={albumValues.title}
+          value={editedAlbum ? editedAlbum.title : albumValues.title}
           onChange={(e) => {
             const val = e.currentTarget.value;
-            setAlbumValues((prev) => ({
-              ...prev,
-              title: val,
-            }));
+
+            {
+              editedAlbum
+                ? setEditedAlbum((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      title: val,
+                    };
+                  })
+                : setAlbumValues((prev) => ({
+                    ...prev,
+                    title: val,
+                  }));
+            }
           }}
         />
       </div>
@@ -54,9 +90,11 @@ export const AlbumsPage = (): JSX.Element => {
       isError={isError}
       isLoading={isLoading}
       listElements={albumElements}
-      changeData={handleMutate}
+      changeData={editedAlbum ? handleEdit : handleMutate}
       inputs={albumInputs}
-      isDisabledBtn={hasEmptyField(albumValues)}
+      isDisabledBtn={editedAlbum ? hasEmptyField(editedAlbum) : hasEmptyField(albumValues)}
+      isEdit={!!editedAlbum}
+      removeEdit={removeEdit}
     />
   );
 };

@@ -26,6 +26,18 @@ const deleteAlbum = async (albumId: number): Promise<void> => {
   if (!response.ok) throw new Error('Something went wrong with deleting a post');
 };
 
+const editAlbum = async (album: Album): Promise<void> => {
+  const response = await fetch(`https://jsonplaceholder.typicode.com/albums/${album.id}`, {
+    method: 'PUT',
+    body: JSON.stringify(album),
+    headers: {
+      'Content-type': 'application/json; charset=UTF-8',
+    },
+  });
+
+  if (!response.ok) throw new Error('Something went wrong with editing a post');
+};
+
 const getAlbums = async (): Promise<Album[] | undefined> => {
   try {
     const response = await fetch('https://jsonplaceholder.typicode.com/albums');
@@ -93,6 +105,45 @@ export const useDeleteAlbum = (): UseMutationResult<
       const prevVal = queryClient.getQueryData<Album[] | undefined>(['albums']);
 
       queryClient.setQueryData(['albums'], (prev: Album[]) => prev.filter((album) => album.id !== id));
+
+      return { prevVal };
+    },
+
+    onError: (_, __, context) => {
+      queryClient.setQueryData(['albums'], context?.prevVal);
+    },
+  });
+};
+
+export const useEditAlbum = (): UseMutationResult<
+  void,
+  Error,
+  Album,
+  {
+    prevVal: Album[] | undefined;
+  }
+> => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationKey: ['edit_album'],
+    mutationFn: editAlbum,
+    onMutate: async (editedAlbum: Album) => {
+      await queryClient.cancelQueries({ queryKey: ['albums'] });
+
+      const prevVal = queryClient.getQueryData<Album[] | undefined>(['albums']);
+
+      const editedAlbumIndex = prevVal?.findIndex((album) => album.id === editedAlbum.id);
+
+      if (!editedAlbumIndex && editedAlbumIndex !== 0) return;
+
+      const updatedAlbums = [
+        ...(prevVal ?? []).slice(0, editedAlbumIndex),
+        editedAlbum,
+        ...(prevVal ?? []).slice(editedAlbumIndex + 1),
+      ];
+
+      queryClient.setQueryData(['albums'], updatedAlbums);
 
       return { prevVal };
     },

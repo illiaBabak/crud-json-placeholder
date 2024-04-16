@@ -1,45 +1,67 @@
-import { useState } from 'react';
-import { useAddUser, useDeleteUser, useQueryUsers } from 'src/api/users';
+import { useContext, useState } from 'react';
+import { useAddUser, useDeleteUser, useEditUser, useQueryUsers } from 'src/api/users';
 import { Page } from 'src/components/Page';
+import { GlobalContext } from 'src/root';
 import { User } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
 
-export const UsersPage = (): JSX.Element => {
-  const { data: users, isError, isLoading } = useQueryUsers();
-  const [userValues, setUserValues] = useState<User>({
-    address: {
-      city: '',
-      street: '',
-    },
+const DEFAULT_VALUES = {
+  address: {
+    city: '',
+    street: '',
+  },
 
-    company: {
-      name: '',
-    },
-
-    email: '',
+  company: {
     name: '',
-    phone: '',
-    username: '',
-    id: 0,
-  });
+  },
+
+  email: '',
+  name: '',
+  phone: '',
+  username: '',
+  id: 0,
+};
+
+export const UsersPage = (): JSX.Element => {
+  const { setShouldShowCreateWindow } = useContext(GlobalContext);
+  const { data: users, isError, isLoading } = useQueryUsers();
+  const [editedUser, setEditedUser] = useState<User | null>(null);
+  const [userValues, setUserValues] = useState<User>(DEFAULT_VALUES);
 
   const { mutateAsync: addUser } = useAddUser();
 
   const { mutateAsync: deleteUser } = useDeleteUser();
 
+  const { mutateAsync: editUser } = useEditUser();
+
   const handleMutate = () => addUser({ ...userValues, id: users?.length ?? 0 });
 
+  const handleEdit = () => editUser(editedUser ?? DEFAULT_VALUES);
+
+  const removeEdit = () => setEditedUser(null);
+
   const handleInputChange = (val: string, fieldName: string) => {
-    setUserValues((prevState) => ({
-      ...prevState,
-      [fieldName]: val,
-    }));
+    {
+      editedUser
+        ? setEditedUser((prev) => {
+            if (!prev) return prev;
+
+            return {
+              ...prev,
+              [fieldName]: val,
+            };
+          })
+        : setUserValues((prevState) => ({
+            ...prevState,
+            [fieldName]: val,
+          }));
+    }
   };
 
   const usersElements =
     users?.map((user, index) => {
       return (
-        <div className='user-el' key={`user-${user.email}-${index}`}>
+        <div className='user-el' key={`user-${user.email}-${index}-${user.id}`}>
           <h2>Username: {user.username}</h2>
           <div className='user-row'>
             <div className='user-col'>
@@ -54,8 +76,19 @@ export const UsersPage = (): JSX.Element => {
             </div>
           </div>
 
-          <div className='delete-el-btn' onClick={() => deleteUser(user.id)}>
-            Delete
+          <div className='container-el-btn'>
+            <div className='delete-el-btn' onClick={() => deleteUser(user.id)}>
+              Delete
+            </div>
+            <div
+              className='edit-el-btn'
+              onClick={() => {
+                setShouldShowCreateWindow(true);
+                setEditedUser(user);
+              }}
+            >
+              Edit
+            </div>
           </div>
         </div>
       );
@@ -68,7 +101,7 @@ export const UsersPage = (): JSX.Element => {
         <input
           type='text'
           className='create-window-input'
-          value={userValues.username}
+          value={editedUser ? editedUser.username : userValues.username}
           onChange={(e) => handleInputChange(e.currentTarget.value, 'username')}
         />
       </div>
@@ -77,7 +110,7 @@ export const UsersPage = (): JSX.Element => {
         <h4>Name</h4>
         <input
           type='text'
-          value={userValues.name}
+          value={editedUser ? editedUser.name : userValues.name}
           className='create-window-input'
           onChange={(e) => handleInputChange(e.currentTarget.value, 'name')}
         />
@@ -87,7 +120,7 @@ export const UsersPage = (): JSX.Element => {
         <h4>Email</h4>
         <input
           type='text'
-          value={userValues.email}
+          value={editedUser ? editedUser.email : userValues.email}
           className='create-window-input'
           onChange={(e) => handleInputChange(e.currentTarget.value, 'email')}
         />
@@ -97,7 +130,7 @@ export const UsersPage = (): JSX.Element => {
         <h4>Phone</h4>
         <input
           type='text'
-          value={userValues.phone}
+          value={editedUser ? editedUser.phone : userValues.phone}
           className='create-window-input'
           onChange={(e) => handleInputChange(e.currentTarget.value, 'phone')}
         />
@@ -107,18 +140,32 @@ export const UsersPage = (): JSX.Element => {
         <h4>Company name</h4>
         <input
           type='text'
-          value={userValues.company.name}
+          value={editedUser ? editedUser.company.name : userValues.company.name}
           className='create-window-input'
           onChange={(e) => {
             const val = e.currentTarget.value;
 
-            setUserValues((prev) => ({
-              ...prev,
-              company: {
-                ...prev.company,
-                name: val,
-              },
-            }));
+            {
+              editedUser
+                ? setEditedUser((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      company: {
+                        ...prev.company,
+                        name: val,
+                      },
+                    };
+                  })
+                : setUserValues((prev) => ({
+                    ...prev,
+                    company: {
+                      ...prev.company,
+                      name: val,
+                    },
+                  }));
+            }
           }}
         />
       </div>
@@ -127,18 +174,32 @@ export const UsersPage = (): JSX.Element => {
         <h4>City</h4>
         <input
           type='text'
-          value={userValues.address.city}
+          value={editedUser ? editedUser.address.city : userValues.address.city}
           className='create-window-input'
           onChange={(e) => {
             const val = e.currentTarget.value;
 
-            setUserValues((prev) => ({
-              ...prev,
-              address: {
-                ...prev.address,
-                city: val,
-              },
-            }));
+            {
+              editedUser
+                ? setEditedUser((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      address: {
+                        ...prev.address,
+                        city: val,
+                      },
+                    };
+                  })
+                : setUserValues((prev) => ({
+                    ...prev,
+                    address: {
+                      ...prev.address,
+                      city: val,
+                    },
+                  }));
+            }
           }}
         />
       </div>
@@ -147,18 +208,32 @@ export const UsersPage = (): JSX.Element => {
         <h4>Street</h4>
         <input
           type='text'
-          value={userValues.address.street}
+          value={editedUser ? editedUser.address.street : userValues.address.street}
           className='create-window-input'
           onChange={(e) => {
             const val = e.currentTarget.value;
 
-            setUserValues((prev) => ({
-              ...prev,
-              address: {
-                ...prev.address,
-                street: val,
-              },
-            }));
+            {
+              editedUser
+                ? setEditedUser((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      address: {
+                        ...prev.address,
+                        street: val,
+                      },
+                    };
+                  })
+                : setUserValues((prev) => ({
+                    ...prev,
+                    address: {
+                      ...prev.address,
+                      street: val,
+                    },
+                  }));
+            }
           }}
         />
       </div>
@@ -173,8 +248,10 @@ export const UsersPage = (): JSX.Element => {
         isLoading={isLoading}
         listElements={usersElements}
         inputs={usersInputs}
-        changeData={handleMutate}
-        isDisabledBtn={hasEmptyField(userValues)}
+        changeData={editedUser ? handleEdit : handleMutate}
+        isDisabledBtn={editedUser ? hasEmptyField(editedUser) : hasEmptyField(userValues)}
+        isEdit={!!editedUser}
+        removeEdit={removeEdit}
       />
     </>
   );

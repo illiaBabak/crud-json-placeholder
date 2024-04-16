@@ -1,23 +1,34 @@
-import { useState } from 'react';
-import { useAddPost, useDeletePost, useQueryPosts } from 'src/api/posts';
+import { useContext, useState } from 'react';
+import { useAddPost, useDeletePost, useEditPost, useQueryPosts } from 'src/api/posts';
 import { Page } from 'src/components/Page';
+import { GlobalContext } from 'src/root';
 import { Post } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
 
+const DEFAULT_VALUES = {
+  title: '',
+  body: '',
+  id: 0,
+  userId: 1,
+};
+
 export const PostsPage = (): JSX.Element => {
   const { data: posts, isError, isLoading } = useQueryPosts();
-  const [postValues, setPostValues] = useState<Post>({
-    title: '',
-    body: '',
-    id: 0,
-    userId: 1,
-  });
+  const { setShouldShowCreateWindow } = useContext(GlobalContext);
+  const [editedPost, setEditedPost] = useState<Post | null>(null);
+  const [postValues, setPostValues] = useState<Post>(DEFAULT_VALUES);
 
   const { mutateAsync: createPost } = useAddPost();
 
   const { mutateAsync: deletePost } = useDeletePost();
 
+  const { mutateAsync: editPost } = useEditPost();
+
   const handleMutate = () => createPost({ ...postValues, id: posts?.length ?? 0 });
+
+  const handleEdit = () => editPost(editedPost ?? DEFAULT_VALUES);
+
+  const removeEdit = () => setEditedPost(null);
 
   const postElements =
     posts?.map((el, index) => {
@@ -25,8 +36,19 @@ export const PostsPage = (): JSX.Element => {
         <div className='list-el' key={`post-${el.title}-${index}`}>
           <h3>{el.title}</h3>
           <p>{el.body}</p>
-          <div className='delete-el-btn' onClick={() => deletePost(el.id)}>
-            Delete
+          <div className='container-el-btn'>
+            <div className='delete-el-btn' onClick={() => deletePost(el.id)}>
+              Delete
+            </div>
+            <div
+              className='edit-el-btn'
+              onClick={() => {
+                setShouldShowCreateWindow(true);
+                setEditedPost(el);
+              }}
+            >
+              Edit
+            </div>
           </div>
         </div>
       );
@@ -39,13 +61,25 @@ export const PostsPage = (): JSX.Element => {
         <input
           type='text'
           className='create-window-input'
-          value={postValues.title}
+          value={editedPost ? editedPost.title : postValues.title}
           onChange={(e) => {
             const val = e.currentTarget.value;
-            setPostValues((prev) => ({
-              ...prev,
-              title: val,
-            }));
+
+            {
+              editedPost
+                ? setEditedPost((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      title: val,
+                    };
+                  })
+                : setPostValues((prev) => ({
+                    ...prev,
+                    title: val,
+                  }));
+            }
           }}
         />
       </div>
@@ -54,14 +88,26 @@ export const PostsPage = (): JSX.Element => {
         <h4>Body</h4>
         <input
           type='text'
-          value={postValues.body}
+          value={editedPost ? editedPost.body : postValues.body}
           className='create-window-input'
           onChange={(e) => {
             const val = e.currentTarget.value;
-            setPostValues((prev) => ({
-              ...prev,
-              body: val,
-            }));
+
+            {
+              editedPost
+                ? setEditedPost((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      body: val,
+                    };
+                  })
+                : setPostValues((prev) => ({
+                    ...prev,
+                    body: val,
+                  }));
+            }
           }}
         />
       </div>
@@ -74,10 +120,22 @@ export const PostsPage = (): JSX.Element => {
           value={postValues.userId}
           onChange={(e) => {
             const val = Number(e.currentTarget.value);
-            setPostValues((prev) => ({
-              ...prev,
-              userId: val,
-            }));
+
+            {
+              editedPost
+                ? setEditedPost((prev) => {
+                    if (!prev) return prev;
+
+                    return {
+                      ...prev,
+                      userId: val,
+                    };
+                  })
+                : setPostValues((prev) => ({
+                    ...prev,
+                    userId: val,
+                  }));
+            }
           }}
         />
       </div>
@@ -91,9 +149,11 @@ export const PostsPage = (): JSX.Element => {
         isError={isError}
         isLoading={isLoading}
         listElements={postElements}
-        changeData={handleMutate}
+        changeData={editedPost ? handleEdit : handleMutate}
         inputs={postInputs}
-        isDisabledBtn={hasEmptyField(postValues)}
+        isDisabledBtn={editedPost ? hasEmptyField(editedPost) : hasEmptyField(postValues)}
+        isEdit={!!editedPost}
+        removeEdit={removeEdit}
       />
     </>
   );

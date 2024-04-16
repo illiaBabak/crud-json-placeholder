@@ -1,8 +1,9 @@
 import { Header } from '../Header';
 import { Alert } from '../Alert';
 import { Loader } from '../Loader';
-import { useState } from 'react';
+import { useContext } from 'react';
 import { CreateWindow } from 'src/components/CreateWindow';
+import { GlobalContext } from 'src/root';
 
 type Props = {
   title: string;
@@ -12,6 +13,8 @@ type Props = {
   inputs: JSX.Element;
   changeData: () => void;
   isDisabledBtn: boolean;
+  isEdit: boolean;
+  removeEdit: () => void;
 };
 
 export const Page = ({
@@ -22,8 +25,10 @@ export const Page = ({
   changeData,
   inputs,
   isDisabledBtn,
+  isEdit,
+  removeEdit,
 }: Props): JSX.Element => {
-  const [shouldShowCreateWindow, setShouldShowCreateWindow] = useState(false);
+  const { shouldShowCreateWindow, setShouldShowCreateWindow } = useContext(GlobalContext);
   const singularWord = title
     .split('')
     .slice(0, title.length - 1)
@@ -33,7 +38,13 @@ export const Page = ({
     <>
       <div className={`page-${title}`}>
         <Header title={title} />
-        <div className='show-window-btn' onClick={() => setShouldShowCreateWindow(true)}>
+        <div
+          className='show-window-btn'
+          onClick={() => {
+            setShouldShowCreateWindow(true);
+            removeEdit();
+          }}
+        >
           Create a new {singularWord}
         </div>
         {isLoading ? <Loader /> : <div className='list'>{listElements}</div>}
@@ -44,10 +55,10 @@ export const Page = ({
       {shouldShowCreateWindow && (
         <CreateWindow
           titleWindow={singularWord}
-          setShouldShowCreateWindow={setShouldShowCreateWindow}
           changeData={changeData}
           inputs={inputs}
           isDisabledBtn={isDisabledBtn}
+          isEdit={isEdit}
         />
       )}
     </>
