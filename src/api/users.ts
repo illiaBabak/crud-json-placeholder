@@ -1,4 +1,6 @@
 import { UseMutationResult, UseQueryResult, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useContext } from 'react';
+import { GlobalContext } from 'src/root';
 import { User } from 'src/types/types';
 import { isUser, isUserArr } from 'src/utils/guards';
 
@@ -69,6 +71,7 @@ export const useAddUser = (): UseMutationResult<
   }
 > => {
   const queryClient = useQueryClient();
+  const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
     mutationKey: ['add_user'],
@@ -83,7 +86,12 @@ export const useAddUser = (): UseMutationResult<
       return { prevVal };
     },
 
+    onSuccess: () => {
+      setAlertProps({ text: 'Success', type: 'success', position: 'top' });
+    },
+
     onError: (_, __, context) => {
+      setAlertProps({ text: 'Error', type: 'error', position: 'top' });
       queryClient.setQueryData(['users'], context?.prevVal);
     },
   });
@@ -98,6 +106,7 @@ export const useDeleteUser = (): UseMutationResult<
   }
 > => {
   const queryClient = useQueryClient();
+  const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
     mutationKey: ['delete_user'],
@@ -112,7 +121,12 @@ export const useDeleteUser = (): UseMutationResult<
       return { prevVal };
     },
 
+    onSuccess: () => {
+      setAlertProps({ text: 'Success', type: 'success', position: 'top' });
+    },
+
     onError: (_err, _user, context) => {
+      setAlertProps({ text: 'Error', type: 'error', position: 'top' });
       queryClient.setQueryData(['users'], context?.prevVal);
     },
   });
@@ -127,6 +141,7 @@ export const useEditUser = (): UseMutationResult<
   }
 > => {
   const queryClient = useQueryClient();
+  const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
     mutationKey: ['edit_user'],
@@ -151,7 +166,12 @@ export const useEditUser = (): UseMutationResult<
       return { prevVal };
     },
 
+    onSuccess: () => {
+      setAlertProps({ text: 'Success', type: 'success', position: 'top' });
+    },
+
     onError: (_, __, context) => {
+      setAlertProps({ text: 'Error', type: 'error', position: 'top' });
       queryClient.setQueryData(['users'], context?.prevVal);
     },
   });

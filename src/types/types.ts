@@ -29,3 +29,9 @@ export type Album = {
   id: number;
   userId: number;
 };
+
+export type AlertProps = {
+  text: string;
+  type: 'success' | 'error' | 'warning';
+  position: 'top' | 'bottom';
+};

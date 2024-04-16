@@ -12,7 +12,7 @@ const DEFAULT_VALUES = {
 };
 
 export const AlbumsPage = (): JSX.Element => {
-  const { data: albums, isError, isLoading } = useQueryAlbums();
+  const { data: albums, isLoading } = useQueryAlbums();
   const { setShouldShowCreateWindow } = useContext(GlobalContext);
   const [editedAlbum, setEditedAlbum] = useState<Album | null>(null);
   const [albumValues, setAlbumValues] = useState<Album>(DEFAULT_VALUES);
@@ -87,7 +87,6 @@ export const AlbumsPage = (): JSX.Element => {
   return (
     <Page
       title='albums'
-      isError={isError}
       isLoading={isLoading}
       listElements={albumElements}
       changeData={editedAlbum ? handleEdit : handleMutate}

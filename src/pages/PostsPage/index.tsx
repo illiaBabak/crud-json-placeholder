@@ -13,7 +13,7 @@ const DEFAULT_VALUES = {
 };
 
 export const PostsPage = (): JSX.Element => {
-  const { data: posts, isError, isLoading } = useQueryPosts();
+  const { data: posts, isLoading } = useQueryPosts();
   const { setShouldShowCreateWindow } = useContext(GlobalContext);
   const [editedPost, setEditedPost] = useState<Post | null>(null);
   const [postValues, setPostValues] = useState<Post>(DEFAULT_VALUES);
@@ -146,7 +146,6 @@ export const PostsPage = (): JSX.Element => {
     <>
       <Page
         title='posts'
-        isError={isError}
         isLoading={isLoading}
         listElements={postElements}
         changeData={editedPost ? handleEdit : handleMutate}

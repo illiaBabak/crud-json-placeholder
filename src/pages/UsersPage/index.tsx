@@ -24,7 +24,7 @@ const DEFAULT_VALUES = {
 
 export const UsersPage = (): JSX.Element => {
   const { setShouldShowCreateWindow } = useContext(GlobalContext);
-  const { data: users, isError, isLoading } = useQueryUsers();
+  const { data: users, isLoading } = useQueryUsers();
   const [editedUser, setEditedUser] = useState<User | null>(null);
   const [userValues, setUserValues] = useState<User>(DEFAULT_VALUES);
 
@@ -244,7 +244,6 @@ export const UsersPage = (): JSX.Element => {
     <>
       <Page
         title='users'
-        isError={isError}
         isLoading={isLoading}
         listElements={usersElements}
         inputs={usersInputs}

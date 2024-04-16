@@ -1,5 +1,4 @@
 import { Header } from '../Header';
-import { Alert } from '../Alert';
 import { Loader } from '../Loader';
 import { useContext } from 'react';
 import { CreateWindow } from 'src/components/CreateWindow';
@@ -8,7 +7,6 @@ import { GlobalContext } from 'src/root';
 type Props = {
   title: string;
   listElements: JSX.Element[];
-  isError: boolean;
   isLoading: boolean;
   inputs: JSX.Element;
   changeData: () => void;
@@ -20,7 +18,6 @@ type Props = {
 export const Page = ({
   title,
   listElements,
-  isError,
   isLoading,
   changeData,
   inputs,
@@ -49,8 +46,6 @@ export const Page = ({
         </div>
         {isLoading ? <Loader /> : <div className='list'>{listElements}</div>}
       </div>
-
-      {isError && <Alert />}
 
       {shouldShowCreateWindow && (
         <CreateWindow

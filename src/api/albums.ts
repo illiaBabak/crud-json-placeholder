@@ -1,4 +1,6 @@
 import { UseMutationResult, UseQueryResult, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useContext } from 'react';
+import { GlobalContext } from 'src/root';
 import { Album } from 'src/types/types';
 import { isAlbum, isAlbumArr } from 'src/utils/guards';
 
@@ -66,6 +68,7 @@ export const useAddAlbum = (): UseMutationResult<
   }
 > => {
   const queryClient = useQueryClient();
+  const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
     mutationKey: ['add_album'],
@@ -80,7 +83,12 @@ export const useAddAlbum = (): UseMutationResult<
       return { prevVal };
     },
 
+    onSuccess: () => {
+      setAlertProps({ text: 'Success', type: 'success', position: 'top' });
+    },
+
     onError: (_, __, context) => {
+      setAlertProps({ text: 'Error', type: 'error', position: 'top' });
       queryClient.setQueryData(['albums'], context?.prevVal);
     },
   });
@@ -95,6 +103,7 @@ export const useDeleteAlbum = (): UseMutationResult<
   }
 > => {
   const queryClient = useQueryClient();
+  const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
     mutationKey: ['delete_album'],
@@ -109,7 +118,12 @@ export const useDeleteAlbum = (): UseMutationResult<
       return { prevVal };
     },
 
+    onSuccess: () => {
+      setAlertProps({ text: 'Success', type: 'success', position: 'top' });
+    },
+
     onError: (_, __, context) => {
+      setAlertProps({ text: 'Error', type: 'error', position: 'top' });
       queryClient.setQueryData(['albums'], context?.prevVal);
     },
   });
@@ -124,6 +138,7 @@ export const useEditAlbum = (): UseMutationResult<
   }
 > => {
   const queryClient = useQueryClient();
+  const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
     mutationKey: ['edit_album'],
@@ -148,7 +163,12 @@ export const useEditAlbum = (): UseMutationResult<
       return { prevVal };
     },
 
+    onSuccess: () => {
+      setAlertProps({ text: 'Success', type: 'success', position: 'top' });
+    },
+
     onError: (_, __, context) => {
+      setAlertProps({ text: 'Error', type: 'error', position: 'top' });
       queryClient.setQueryData(['albums'], context?.prevVal);
     },
   });
