@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAddUser, useDeleteUser, useEditUser, useQueryUsers } from 'src/api/users';
 import { Page } from 'src/components/Page';
 import { GlobalContext } from 'src/root';
@@ -22,11 +23,29 @@ const DEFAULT_VALUES = {
   id: 0,
 };
 
+const findUser = (users: User[] | undefined, searchVal: string) => {
+  const targetUser = users?.filter(
+    (user) =>
+      user.name.toLowerCase().includes(searchVal.toLowerCase()) ||
+      user.username.toLowerCase().includes(searchVal.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchVal.toLowerCase()) ||
+      user.phone.toLowerCase().includes(searchVal.toLowerCase()) ||
+      user.address.city.toLowerCase().includes(searchVal.toLowerCase()) ||
+      user.address.street.toLowerCase().includes(searchVal.toLowerCase()) ||
+      user.company.name.toLowerCase().includes(searchVal.toLowerCase())
+  )[0];
+
+  return targetUser;
+};
+
 export const UsersPage = (): JSX.Element => {
-  const { setShouldShowCreateWindow } = useContext(GlobalContext);
+  const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
   const { data: users, isLoading } = useQueryUsers();
   const [editedUser, setEditedUser] = useState<User | null>(null);
   const [userValues, setUserValues] = useState<User>(DEFAULT_VALUES);
+  const [searchVal, setSearchVal] = useState('');
+  const navigate = useNavigate();
+  const { id } = useParams();
 
   const { mutateAsync: addUser } = useAddUser();
 
@@ -58,8 +77,38 @@ export const UsersPage = (): JSX.Element => {
     }
   };
 
+  const searchUser = () => {
+    if (!searchVal) {
+      navigate('/posts');
+      return;
+    }
+
+    const searched = findUser(users, searchVal);
+
+    if (searched) navigate(`/users/:${searched?.id}`);
+    else {
+      setAlertProps({ text: 'Not found', type: 'warning', position: 'top' });
+      navigate('/users');
+    }
+  };
+
+  const searchUserInput = (
+    <input
+      type='text'
+      className='search-input'
+      value={searchVal}
+      onChange={(e) => setSearchVal(e.currentTarget.value)}
+      onBlur={() => searchUser()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+      }}
+    />
+  );
+
   const usersElements =
-    users?.map((user, index) => {
+    (id ? users?.filter((user) => user.id === Number(id.slice(1))) : users)?.map((user, index) => {
+      if (id && index > 0) return <></>;
+
       return (
         <div className='user-el' key={`user-${user.email}-${index}-${user.id}`}>
           <h2>Username: {user.username}</h2>
@@ -251,6 +300,7 @@ export const UsersPage = (): JSX.Element => {
         isDisabledBtn={editedUser ? hasEmptyField(editedUser) : hasEmptyField(userValues)}
         isEdit={!!editedUser}
         removeEdit={removeEdit}
+        searchInput={searchUserInput}
       />
     </>
   );

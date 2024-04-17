@@ -13,6 +13,7 @@ type Props = {
   isDisabledBtn: boolean;
   isEdit: boolean;
   removeEdit: () => void;
+  searchInput: JSX.Element;
 };
 
 export const Page = ({
@@ -24,6 +25,7 @@ export const Page = ({
   isDisabledBtn,
   isEdit,
   removeEdit,
+  searchInput,
 }: Props): JSX.Element => {
   const { shouldShowCreateWindow, setShouldShowCreateWindow } = useContext(GlobalContext);
   const singularWord = title
@@ -34,7 +36,7 @@ export const Page = ({
   return (
     <>
       <div className={`page-${title}`}>
-        <Header title={title} />
+        <Header title={title} searchInput={searchInput} />
         <div
           className='show-window-btn'
           onClick={() => {

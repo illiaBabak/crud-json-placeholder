@@ -39,6 +39,9 @@ export const App = (): JSX.Element => {
             <Route path='/posts' element={<PostsPage />} />
             <Route path='/albums' element={<AlbumsPage />} />
             <Route path='/users' element={<UsersPage />} />
+            <Route path='/posts/:id' element={<PostsPage />} />
+            <Route path='/albums/:id' element={<AlbumsPage />} />
+            <Route path='/users/:id' element={<UsersPage />} />
           </Routes>
         </BrowserRouter>
       </GlobalContext.Provider>

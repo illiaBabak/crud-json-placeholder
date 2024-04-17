@@ -1,4 +1,5 @@
 import { useContext, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useAddPost, useDeletePost, useEditPost, useQueryPosts } from 'src/api/posts';
 import { Page } from 'src/components/Page';
 import { GlobalContext } from 'src/root';
@@ -12,11 +13,24 @@ const DEFAULT_VALUES = {
   userId: 1,
 };
 
+const findPost = (posts: Post[] | undefined, searchVal: string) => {
+  const targetPost = posts?.filter(
+    (post) =>
+      post.body.toLowerCase().includes(searchVal.toLowerCase()) ||
+      post.title.toLowerCase().includes(searchVal.toLowerCase())
+  )[0];
+
+  return targetPost;
+};
+
 export const PostsPage = (): JSX.Element => {
+  const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
   const { data: posts, isLoading } = useQueryPosts();
-  const { setShouldShowCreateWindow } = useContext(GlobalContext);
   const [editedPost, setEditedPost] = useState<Post | null>(null);
   const [postValues, setPostValues] = useState<Post>(DEFAULT_VALUES);
+  const [searchVal, setSearchVal] = useState('');
+  const navigate = useNavigate();
+  const { id } = useParams();
 
   const { mutateAsync: createPost } = useAddPost();
 
@@ -30,8 +44,38 @@ export const PostsPage = (): JSX.Element => {
 
   const removeEdit = () => setEditedPost(null);
 
+  const searchPost = () => {
+    if (!searchVal) {
+      navigate('/posts');
+      return;
+    }
+
+    const searched = findPost(posts, searchVal);
+
+    if (searched) navigate(`/posts/:${searched?.id}`);
+    else {
+      setAlertProps({ text: 'Not found', type: 'warning', position: 'top' });
+      navigate('/posts');
+    }
+  };
+
+  const searchPostInput = (
+    <input
+      type='text'
+      className='search-input'
+      value={searchVal}
+      onChange={(e) => setSearchVal(e.currentTarget.value)}
+      onBlur={() => searchPost()}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter') e.currentTarget.blur();
+      }}
+    />
+  );
+
   const postElements =
-    posts?.map((el, index) => {
+    (id ? posts?.filter((post) => post.id === Number(id.slice(1))) : posts)?.map((el, index) => {
+      if (id && index > 0) return <></>;
+
       return (
         <div className='list-el' key={`post-${el.title}-${index}`}>
           <h3>{el.title}</h3>
@@ -153,6 +197,7 @@ export const PostsPage = (): JSX.Element => {
         isDisabledBtn={editedPost ? hasEmptyField(editedPost) : hasEmptyField(postValues)}
         isEdit={!!editedPost}
         removeEdit={removeEdit}
+        searchInput={searchPostInput}
       />
     </>
   );
