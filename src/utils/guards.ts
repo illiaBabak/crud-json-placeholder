@@ -1,4 +1,4 @@
-import { Post, Album, User, UserAddress, UserCompany } from 'src/types/types';
+import { Post, Album, User, UserAddress, UserCompany, Comment } from 'src/types/types';
 
 const isObj = (val: unknown): val is object => !!val && typeof val === 'object';
 
@@ -70,4 +70,24 @@ export const isUser = (data: unknown): data is User => {
 
 export const isUserArr = (data: unknown): data is User[] => {
   return Array.isArray(data) && data.every((user) => isUser(user));
+};
+
+export const isComment = (data: unknown): data is Comment => {
+  return (
+    isObj(data) &&
+    'body' in data &&
+    'email' in data &&
+    'id' in data &&
+    'name' in data &&
+    'postId' in data &&
+    isString(data.body) &&
+    isString(data.email) &&
+    isNumber(data.id) &&
+    isString(data.name) &&
+    isNumber(data.postId)
+  );
+};
+
+export const isCommentArr = (data: unknown): data is Comment[] => {
+  return Array.isArray(data) && data.every((el) => isComment(el));
 };

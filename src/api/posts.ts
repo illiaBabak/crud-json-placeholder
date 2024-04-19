@@ -40,6 +40,19 @@ const editPost = async (post: Post): Promise<void> => {
   if (!response.ok) throw new Error('Something went wrong with editing a post');
 };
 
+const getPost = async (id: number): Promise<Post | undefined> => {
+  try {
+    const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
+
+    const responseData: unknown = await response.json();
+
+    if (isPost(responseData)) return responseData;
+    else throw new Error('Something went wrong with API request (post)');
+  } catch {
+    throw new Error('Unexpected result (post)');
+  }
+};
+
 const getPosts = async (): Promise<Post[] | undefined> => {
   try {
     const response = await fetch(`https://jsonplaceholder.typicode.com/posts`);
@@ -58,6 +71,15 @@ export const useQueryPosts = (): UseQueryResult<Post[]> => {
     queryKey: ['posts'],
     queryFn: async () => {
       return await getPosts();
+    },
+  });
+};
+
+export const useQueryPost = (id: number): UseQueryResult<Post> => {
+  return useQuery({
+    queryKey: ['post'],
+    queryFn: async () => {
+      return await getPost(id);
     },
   });
 };

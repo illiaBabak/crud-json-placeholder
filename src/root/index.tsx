@@ -2,6 +2,7 @@ import { createContext, useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Alert } from 'src/components/Alert';
 import { AlbumsPage } from 'src/pages/AlbumsPage';
+import { CommentsPage } from 'src/pages/CommentsPage';
 import { PostsPage } from 'src/pages/PostsPage';
 import { UsersPage } from 'src/pages/UsersPage';
 import { AlertProps } from 'src/types/types';
@@ -39,6 +40,7 @@ export const App = (): JSX.Element => {
             <Route path='/posts' element={<PostsPage />} />
             <Route path='/albums' element={<AlbumsPage />} />
             <Route path='/users' element={<UsersPage />} />
+            <Route path='/comments' element={<CommentsPage />} />
             <Route path='/posts/:id' element={<PostsPage />} />
             <Route path='/albums/:id' element={<AlbumsPage />} />
             <Route path='/users/:id' element={<UsersPage />} />

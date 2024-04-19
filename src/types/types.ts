@@ -35,3 +35,11 @@ export type AlertProps = {
   type: 'success' | 'error' | 'warning';
   position: 'top' | 'bottom';
 };
+
+export type Comment = {
+  body: string;
+  email: string;
+  id: number;
+  name: string;
+  postId: number;
+};

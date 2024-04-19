@@ -37,15 +37,17 @@ export const Page = ({
     <>
       <div className={`page-${title}`}>
         <Header title={title} searchInput={searchInput} />
+
         <div
           className='show-window-btn'
           onClick={() => {
             setShouldShowCreateWindow(true);
-            removeEdit();
+            removeEdit?.();
           }}
         >
           Create a new {singularWord}
         </div>
+
         {isLoading ? <Loader /> : <div className='list'>{listElements}</div>}
       </div>
 
