@@ -37,25 +37,18 @@ export const App = (): JSX.Element => {
         <BrowserRouter>
           <Routes>
             <Route path='/*' element={<Navigate to='/posts' />} />
-            <Route path='/posts' element={<PostsPage />} />
+            <Route path='/posts'>
+              <Route index element={<PostsPage />} />
+              <Route path='comments/:id' element={<CommentsPage />} />
+            </Route>
+
             <Route path='/albums' element={<AlbumsPage />} />
             <Route path='/users' element={<UsersPage />} />
-            <Route path='/comments' element={<CommentsPage />} />
-            <Route path='/posts/:id' element={<PostsPage />} />
-            <Route path='/albums/:id' element={<AlbumsPage />} />
-            <Route path='/users/:id' element={<UsersPage />} />
           </Routes>
         </BrowserRouter>
       </GlobalContext.Provider>
 
-      {alertProps && (
-        <Alert
-          text={alertProps.text}
-          type={alertProps.type}
-          onClose={() => setAlertProps(null)}
-          position={alertProps.position}
-        />
-      )}
+      {alertProps && <Alert onClose={() => setAlertProps(null)} {...alertProps} />}
     </div>
   );
 };

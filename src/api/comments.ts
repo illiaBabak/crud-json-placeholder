@@ -1,6 +1,7 @@
-import { UseInfiniteQueryResult, useInfiniteQuery } from '@tanstack/react-query';
+import { UseQueryResult, useQuery } from '@tanstack/react-query';
 import { isCommentArr } from 'src/utils/guards';
 import { Comment } from 'src/types/types';
+import { BASE_URL, COMMENTS_QUERY } from './constants';
 
 type CommentResponse = {
   comments: Comment[];
@@ -9,7 +10,7 @@ type CommentResponse = {
 
 const getComments = async (postId: number): Promise<CommentResponse | undefined> => {
   try {
-    const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}/comments`);
+    const response = await fetch(`${BASE_URL}/posts/${postId}/comments`);
 
     const responseData: unknown = await response.json();
 
@@ -20,16 +21,11 @@ const getComments = async (postId: number): Promise<CommentResponse | undefined>
   }
 };
 
-export const useCommentsQuery = (): UseInfiniteQueryResult<{ pages: CommentResponse[] } | undefined, Error> => {
-  return useInfiniteQuery({
-    queryKey: ['comments'],
-    queryFn: async ({ pageParam }) => {
-      return await getComments(pageParam);
-    },
-    initialPageParam: 1,
-    getNextPageParam: (currentPage) => {
-      const { postId = 1 } = currentPage ?? {};
-      return postId + 1;
+export const useCommentQuery = (id: number): UseQueryResult<CommentResponse | undefined, Error> => {
+  return useQuery({
+    queryKey: [COMMENTS_QUERY],
+    queryFn: async () => {
+      return await getComments(id);
     },
   });
 };

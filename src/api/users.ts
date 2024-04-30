@@ -2,10 +2,11 @@ import { UseMutationResult, UseQueryResult, useMutation, useQuery, useQueryClien
 import { useContext } from 'react';
 import { GlobalContext } from 'src/root';
 import { User } from 'src/types/types';
-import { isUser, isUserArr } from 'src/utils/guards';
+import { isUserArr } from 'src/utils/guards';
+import { BASE_URL, USERS_QUERY, USER_ADD, USER_DELETE, USER_EDIT, USER_MUTATION } from './constants';
 
-const addUser = async (user: User): Promise<User | undefined> => {
-  const response = await fetch('https://jsonplaceholder.typicode.com/users', {
+const addUser = async (user: User): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/users`, {
     method: 'POST',
     body: JSON.stringify(user),
     headers: {
@@ -14,14 +15,10 @@ const addUser = async (user: User): Promise<User | undefined> => {
   });
 
   if (!response.ok) throw new Error('Something went wrong with adding a new user');
-
-  const newUser: unknown = await response.json();
-
-  return isUser(newUser) ? newUser : undefined;
 };
 
 const deleteUser = async (userId: number): Promise<undefined> => {
-  const response = await fetch(`https://jsonplaceholder.typicode.com/users/${userId}`, {
+  const response = await fetch(`${BASE_URL}/users/${userId}`, {
     method: 'DELETE',
   });
 
@@ -29,7 +26,7 @@ const deleteUser = async (userId: number): Promise<undefined> => {
 };
 
 const editUser = async (user: User): Promise<void> => {
-  const response = await fetch(`https://jsonplaceholder.typicode.com/users/${user.id}`, {
+  const response = await fetch(`${BASE_URL}/users/${user.id}`, {
     method: 'PUT',
     body: JSON.stringify(user),
     headers: {
@@ -42,7 +39,7 @@ const editUser = async (user: User): Promise<void> => {
 
 const getUsers = async (): Promise<User[] | undefined> => {
   try {
-    const response = await fetch(`https://jsonplaceholder.typicode.com/users`);
+    const response = await fetch(`${BASE_URL}/users`);
 
     const responseData: unknown = await response.json();
 
@@ -53,17 +50,14 @@ const getUsers = async (): Promise<User[] | undefined> => {
   }
 };
 
-export const useQueryUsers = (): UseQueryResult<User[]> => {
-  return useQuery({
-    queryKey: ['users'],
-    queryFn: async () => {
-      return await getUsers();
-    },
+export const useQueryUsers = (): UseQueryResult<User[]> =>
+  useQuery({
+    queryKey: [USERS_QUERY],
+    queryFn: getUsers,
   });
-};
 
 export const useAddUser = (): UseMutationResult<
-  User | undefined,
+  void,
   Error,
   User,
   {
@@ -74,14 +68,14 @@ export const useAddUser = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['add_user'],
+    mutationKey: [USER_MUTATION, USER_ADD],
     mutationFn: addUser,
     onMutate: async (user: User) => {
-      await queryClient.cancelQueries({ queryKey: ['users'] });
+      await queryClient.cancelQueries({ queryKey: [USERS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<User[] | undefined>(['users']);
+      const prevVal = queryClient.getQueryData<User[] | undefined>([USERS_QUERY]);
 
-      queryClient.setQueryData(['users'], (prev: User[]) => [user, ...prev]);
+      queryClient.setQueryData([USERS_QUERY], (prev: User[]) => [user, ...prev]);
 
       return { prevVal };
     },
@@ -92,7 +86,7 @@ export const useAddUser = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['users'], context?.prevVal);
+      queryClient.setQueryData([USERS_QUERY], context?.prevVal);
     },
   });
 };
@@ -109,14 +103,14 @@ export const useDeleteUser = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['delete_user'],
+    mutationKey: [USER_MUTATION, USER_DELETE],
     mutationFn: deleteUser,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: ['users'] });
+      await queryClient.cancelQueries({ queryKey: [USERS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<User[] | undefined>(['users']);
+      const prevVal = queryClient.getQueryData<User[] | undefined>([USERS_QUERY]);
 
-      queryClient.setQueryData(['users'], (prev: User[]) => prev.filter((user) => user.id !== id));
+      queryClient.setQueryData([USERS_QUERY], (prev: User[]) => prev.filter((user) => user.id !== id));
 
       return { prevVal };
     },
@@ -127,7 +121,7 @@ export const useDeleteUser = (): UseMutationResult<
 
     onError: (_err, _user, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['users'], context?.prevVal);
+      queryClient.setQueryData([USERS_QUERY], context?.prevVal);
     },
   });
 };
@@ -144,24 +138,16 @@ export const useEditUser = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['edit_user'],
+    mutationKey: [USER_MUTATION, USER_EDIT],
     mutationFn: editUser,
     onMutate: async (editedUser: User) => {
-      await queryClient.cancelQueries({ queryKey: ['users'] });
+      await queryClient.cancelQueries({ queryKey: [USERS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<User[] | undefined>(['users']);
+      const prevVal = queryClient.getQueryData<User[] | undefined>([USERS_QUERY]);
 
-      const editedUserIndex = prevVal?.findIndex((user) => user.id === editedUser.id);
-
-      if (!editedUserIndex && editedUserIndex !== 0) return;
-
-      const updatedUsers = [
-        ...(prevVal ?? []).slice(0, editedUserIndex),
-        editedUser,
-        ...(prevVal ?? []).slice(editedUserIndex + 1),
-      ];
-
-      queryClient.setQueryData(['users'], updatedUsers);
+      queryClient.setQueryData<User[] | undefined>([USERS_QUERY], (prev) =>
+        prev?.map((user) => (user.id === editedUser.id ? { ...user, ...editedUser } : user))
+      );
 
       return { prevVal };
     },
@@ -172,7 +158,7 @@ export const useEditUser = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['users'], context?.prevVal);
+      queryClient.setQueryData([USERS_QUERY], context?.prevVal);
     },
   });
 };

@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
-import { useCommentsQuery } from 'src/api/comments';
+import { useEffect, useRef, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useCommentQuery } from 'src/api/comments';
 import { useQueryPost } from 'src/api/posts';
 import { Header } from 'src/components/Header';
 import { Loader } from 'src/components/Loader';
@@ -8,38 +9,45 @@ import { Comment } from 'src/types/types';
 const MAX_POSTS = 100;
 
 export const CommentsPage = (): JSX.Element => {
-  const [page, setPage] = useState(0);
+  const { id } = useParams();
+  const parsedId = useRef<number>(Number(id?.slice(1)));
   const [comments, setComments] = useState<Comment[] | undefined>([]);
-  const [isRefetching, setIsRefetching] = useState(false);
-  const { data: commentsData, isLoading: isLoadingComments, fetchNextPage, fetchPreviousPage } = useCommentsQuery();
-  const { data: currentPost, isLoading: isLoadingPost, refetch } = useQueryPost(page + 1);
+  const { data: commentsData, isLoading: isLoadingComments } = useCommentQuery(parsedId.current);
+  const { data: currentPost, isLoading: isLoadingPost } = useQueryPost(parsedId.current);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    if (commentsData && commentsData.pages[page]) setComments(commentsData.pages[page].comments);
-  }, [commentsData, page]);
+    if (commentsData) setComments(commentsData.comments);
+  }, [commentsData]);
 
-  const handleRefetch = useCallback(async () => {
-    setIsRefetching(true);
-    await refetch();
-    setIsRefetching(false);
-  }, [refetch]);
+  const handlePrevClick = () => {
+    if (parsedId.current === 1) return;
+
+    navigate(`/posts/comments/:${parsedId.current - 1}`);
+    window.location.reload();
+  };
+
+  const handleNextClick = () => {
+    if (parsedId.current === MAX_POSTS - 1) return;
+
+    navigate(`/posts/comments/:${parsedId.current + 1}`);
+    window.location.reload();
+  };
 
   const commentElements =
-    comments?.map((comment) => {
-      return (
-        <div className='comment' key={`comment-${comment.id}-${comment.email}`}>
-          <h4>{comment.name}</h4>
-          <p className='comment-content'>{comment.body}</p>
-          <p className='comment-content'>Author: {comment.email}</p>
-        </div>
-      );
-    }) ?? [];
+    comments?.map((comment) => (
+      <div className='comment' key={`comment-${comment.id}-${comment.email}`}>
+        <h4>{comment.name}</h4>
+        <p className='comment-content'>{comment.body}</p>
+        <p className='comment-content'>Author: {comment.email}</p>
+      </div>
+    )) ?? [];
 
   return (
     <div className='comments-page'>
       <Header title='Comments' />
 
-      {isLoadingComments || isLoadingPost || isRefetching ? (
+      {isLoadingComments || isLoadingPost ? (
         <Loader />
       ) : (
         <div className='comments-main'>
@@ -51,31 +59,12 @@ export const CommentsPage = (): JSX.Element => {
             </div>
 
             <div className='comments-container-btn'>
-              <div
-                className={`comment-btn ${page === 0 ? 'disabled-btn' : ''}`}
-                onClick={
-                  page !== 0
-                    ? async () => {
-                        setPage((prev) => prev - 1);
-                        await fetchPreviousPage();
-                        handleRefetch();
-                      }
-                    : () => {}
-                }
-              >
+              <div className={`comment-btn ${parsedId.current === 1 ? 'disabled-btn' : ''}`} onClick={handlePrevClick}>
                 Prev
               </div>
               <div
-                className={`comment-btn ${page === MAX_POSTS ? 'disabled-btn' : ''}`}
-                onClick={
-                  page !== MAX_POSTS
-                    ? async () => {
-                        setPage((prev) => prev + 1);
-                        await fetchNextPage();
-                        handleRefetch();
-                      }
-                    : () => {}
-                }
+                className={`comment-btn ${parsedId.current === MAX_POSTS - 1 ? 'disabled-btn' : ''}`}
+                onClick={handleNextClick}
               >
                 Next
               </div>

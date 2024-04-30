@@ -1,5 +1,5 @@
-import { useContext, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAddAlbum, useDeleteAlbum, useEditAlbum, useQueryAlbums } from 'src/api/albums';
 import { Page } from 'src/components/Page';
 import { GlobalContext } from 'src/root';
@@ -12,10 +12,10 @@ const DEFAULT_VALUES = {
   id: 0,
 };
 
-const findAlbum = (albums: Album[] | undefined, searchVal: string) => {
-  const targetAlbum = albums?.filter((album) => album.title.toLowerCase().includes(searchVal.toLowerCase()))[0];
+const findAlbums = (albums: Album[] | undefined, searchVal: string) => {
+  const targetAlbums = albums?.filter((album) => album.title.toLowerCase().includes(searchVal.toLowerCase()));
 
-  return targetAlbum;
+  return targetAlbums;
 };
 
 export const AlbumsPage = (): JSX.Element => {
@@ -24,8 +24,19 @@ export const AlbumsPage = (): JSX.Element => {
   const [editedAlbum, setEditedAlbum] = useState<Album | null>(null);
   const [albumValues, setAlbumValues] = useState<Album>(DEFAULT_VALUES);
   const [searchVal, setSearchVal] = useState('');
-  const navigate = useNavigate();
-  const { id } = useParams();
+  const [seachParams, setSearchParams] = useSearchParams();
+  const searchText = seachParams.get('query');
+  const [filteredAlbums, setFilteredAlbums] = useState<Album[] | undefined>(albums);
+
+  useEffect(() => {
+    const filtered = searchText ? findAlbums(albums, searchText) : albums;
+
+    setFilteredAlbums(filtered);
+
+    if (!albums) return;
+
+    if (!filtered?.length) setAlertProps({ text: 'Not found', position: 'top', type: 'warning' });
+  }, [albums, searchText, setAlertProps]);
 
   const { mutateAsync: addAlbum } = useAddAlbum();
 
@@ -39,28 +50,24 @@ export const AlbumsPage = (): JSX.Element => {
 
   const removeEdit = () => setEditedAlbum(null);
 
-  const searchAlbum = () => {
-    if (!searchVal) {
-      navigate('/posts');
-      return;
-    }
-
-    const searched = findAlbum(albums, searchVal);
-
-    if (searched) navigate(`/albums/:${searched?.id}`);
-    else {
-      setAlertProps({ text: 'Not found', type: 'warning', position: 'top' });
-      navigate('/albums');
-    }
-  };
-
   const searchAlbumInput = (
     <input
       type='text'
       className='search-input'
       value={searchVal}
       onChange={(e) => setSearchVal(e.currentTarget.value)}
-      onBlur={() => searchAlbum()}
+      onBlur={(e) => {
+        setAlertProps({ text: 'Success', position: 'top', type: 'success' });
+
+        if (!e.currentTarget.value) {
+          const params = new URLSearchParams(seachParams);
+          params.delete('query');
+          setSearchParams(params);
+          return;
+        }
+
+        setSearchParams({ query: e.currentTarget.value });
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') e.currentTarget.blur();
       }}
@@ -68,9 +75,7 @@ export const AlbumsPage = (): JSX.Element => {
   );
 
   const albumElements =
-    (id ? albums?.filter((album) => album.id === Number(id.slice(1))) : albums)?.map((album, index) => {
-      if (id && index > 0) return <></>;
-
+    filteredAlbums?.map((album, index) => {
       return (
         <div className='list-el' key={`album-${album.title}-${index}`}>
           <h3>{album.title}</h3>

@@ -2,10 +2,11 @@ import { UseMutationResult, UseQueryResult, useMutation, useQuery, useQueryClien
 import { useContext } from 'react';
 import { GlobalContext } from 'src/root';
 import { Album } from 'src/types/types';
-import { isAlbum, isAlbumArr } from 'src/utils/guards';
+import { isAlbumArr } from 'src/utils/guards';
+import { ALBUMS_QUERY, ALBUM_ADD, ALBUM_DELETE, ALBUM_EDIT, ALBUM_MUTATION, BASE_URL } from './constants';
 
-const addAlbum = async (album: Album): Promise<Album | undefined> => {
-  const response = await fetch('https://jsonplaceholder.typicode.com/albums', {
+const addAlbum = async (album: Album): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/albums`, {
     method: 'POST',
     body: JSON.stringify(album),
     headers: {
@@ -14,14 +15,10 @@ const addAlbum = async (album: Album): Promise<Album | undefined> => {
   });
 
   if (!response.ok) throw new Error('Something went wrong with adding a new album');
-
-  const newAlbum: unknown = await response.json();
-
-  return isAlbum(newAlbum) ? newAlbum : undefined;
 };
 
 const deleteAlbum = async (albumId: number): Promise<void> => {
-  const response = await fetch(`https://jsonplaceholder.typicode.com/albums/${albumId}`, {
+  const response = await fetch(`${BASE_URL}/albums/${albumId}`, {
     method: 'DELETE',
   });
 
@@ -29,7 +26,7 @@ const deleteAlbum = async (albumId: number): Promise<void> => {
 };
 
 const editAlbum = async (album: Album): Promise<void> => {
-  const response = await fetch(`https://jsonplaceholder.typicode.com/albums/${album.id}`, {
+  const response = await fetch(`${BASE_URL}/albums/${album.id}`, {
     method: 'PUT',
     body: JSON.stringify(album),
     headers: {
@@ -42,7 +39,7 @@ const editAlbum = async (album: Album): Promise<void> => {
 
 const getAlbums = async (): Promise<Album[] | undefined> => {
   try {
-    const response = await fetch('https://jsonplaceholder.typicode.com/albums');
+    const response = await fetch(`${BASE_URL}/albums`);
 
     const responseData: unknown = await response.json();
 
@@ -55,12 +52,12 @@ const getAlbums = async (): Promise<Album[] | undefined> => {
 
 export const useQueryAlbums = (): UseQueryResult<Album[]> =>
   useQuery({
-    queryKey: ['albums'],
+    queryKey: [ALBUMS_QUERY],
     queryFn: getAlbums,
   });
 
 export const useAddAlbum = (): UseMutationResult<
-  Album | undefined,
+  void,
   Error,
   Album,
   {
@@ -71,14 +68,14 @@ export const useAddAlbum = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['add_album'],
-    mutationFn: (album: Album) => addAlbum(album),
+    mutationKey: [ALBUM_MUTATION, ALBUM_ADD],
+    mutationFn: addAlbum,
     onMutate: async (album: Album) => {
-      await queryClient.cancelQueries({ queryKey: ['albums'] });
+      await queryClient.cancelQueries({ queryKey: [ALBUMS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<Album[] | undefined>(['albums']);
+      const prevVal = queryClient.getQueryData<Album[] | undefined>([ALBUMS_QUERY]);
 
-      queryClient.setQueryData(['albums'], (prev: Album[]) => [album, ...prev]);
+      queryClient.setQueryData([ALBUMS_QUERY], (prev: Album[]) => [album, ...prev]);
 
       return { prevVal };
     },
@@ -89,7 +86,7 @@ export const useAddAlbum = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['albums'], context?.prevVal);
+      queryClient.setQueryData([ALBUMS_QUERY], context?.prevVal);
     },
   });
 };
@@ -106,14 +103,14 @@ export const useDeleteAlbum = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['delete_album'],
+    mutationKey: [ALBUM_MUTATION, ALBUM_DELETE],
     mutationFn: deleteAlbum,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: ['albums'] });
+      await queryClient.cancelQueries({ queryKey: [ALBUMS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<Album[] | undefined>(['albums']);
+      const prevVal = queryClient.getQueryData<Album[] | undefined>([ALBUMS_QUERY]);
 
-      queryClient.setQueryData(['albums'], (prev: Album[]) => prev.filter((album) => album.id !== id));
+      queryClient.setQueryData([ALBUMS_QUERY], (prev: Album[]) => prev.filter((album) => album.id !== id));
 
       return { prevVal };
     },
@@ -124,7 +121,7 @@ export const useDeleteAlbum = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['albums'], context?.prevVal);
+      queryClient.setQueryData([ALBUMS_QUERY], context?.prevVal);
     },
   });
 };
@@ -141,24 +138,16 @@ export const useEditAlbum = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['edit_album'],
+    mutationKey: [ALBUM_MUTATION, ALBUM_EDIT],
     mutationFn: editAlbum,
     onMutate: async (editedAlbum: Album) => {
-      await queryClient.cancelQueries({ queryKey: ['albums'] });
+      await queryClient.cancelQueries({ queryKey: [ALBUMS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<Album[] | undefined>(['albums']);
+      const prevVal = queryClient.getQueryData<Album[] | undefined>([ALBUMS_QUERY]);
 
-      const editedAlbumIndex = prevVal?.findIndex((album) => album.id === editedAlbum.id);
-
-      if (!editedAlbumIndex && editedAlbumIndex !== 0) return;
-
-      const updatedAlbums = [
-        ...(prevVal ?? []).slice(0, editedAlbumIndex),
-        editedAlbum,
-        ...(prevVal ?? []).slice(editedAlbumIndex + 1),
-      ];
-
-      queryClient.setQueryData(['albums'], updatedAlbums);
+      queryClient.setQueryData<Album[] | undefined>([ALBUMS_QUERY], (prev) =>
+        prev?.map((album) => (album.id === editedAlbum.id ? { ...album, ...editedAlbum } : album))
+      );
 
       return { prevVal };
     },
@@ -169,7 +158,7 @@ export const useEditAlbum = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['albums'], context?.prevVal);
+      queryClient.setQueryData([ALBUMS_QUERY], context?.prevVal);
     },
   });
 };

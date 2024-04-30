@@ -3,9 +3,10 @@ import { useContext } from 'react';
 import { GlobalContext } from 'src/root';
 import { Post } from 'src/types/types';
 import { isPost, isPostArr } from 'src/utils/guards';
+import { BASE_URL, POSTS_QUERY, POST_ADD, POST_DELETE, POST_EDIT, POST_MUTATION, POST_QUERY } from './constants';
 
-const addPost = async (post: Post): Promise<Post | undefined> => {
-  const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
+const addPost = async (post: Post): Promise<void> => {
+  const response = await fetch(`${BASE_URL}/posts`, {
     method: 'POST',
     body: JSON.stringify(post),
     headers: {
@@ -14,14 +15,10 @@ const addPost = async (post: Post): Promise<Post | undefined> => {
   });
 
   if (!response.ok) throw new Error('Something went wrong with adding a new post');
-
-  const newPost: unknown = await response.json();
-
-  return isPost(newPost) ? newPost : undefined;
 };
 
 const deletePost = async (postId: number): Promise<void> => {
-  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${postId}`, {
+  const response = await fetch(`${BASE_URL}/posts/${postId}`, {
     method: 'DELETE',
   });
 
@@ -29,7 +26,7 @@ const deletePost = async (postId: number): Promise<void> => {
 };
 
 const editPost = async (post: Post): Promise<void> => {
-  const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${post.id}`, {
+  const response = await fetch(`${BASE_URL}/posts/${post.id}`, {
     method: 'PUT',
     body: JSON.stringify(post),
     headers: {
@@ -42,7 +39,7 @@ const editPost = async (post: Post): Promise<void> => {
 
 const getPost = async (id: number): Promise<Post | undefined> => {
   try {
-    const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
+    const response = await fetch(`${BASE_URL}/posts/${id}`);
 
     const responseData: unknown = await response.json();
 
@@ -55,7 +52,7 @@ const getPost = async (id: number): Promise<Post | undefined> => {
 
 const getPosts = async (): Promise<Post[] | undefined> => {
   try {
-    const response = await fetch(`https://jsonplaceholder.typicode.com/posts`);
+    const response = await fetch(`${BASE_URL}/posts`);
 
     const responseData: unknown = await response.json();
 
@@ -66,26 +63,22 @@ const getPosts = async (): Promise<Post[] | undefined> => {
   }
 };
 
-export const useQueryPosts = (): UseQueryResult<Post[]> => {
-  return useQuery({
-    queryKey: ['posts'],
-    queryFn: async () => {
-      return await getPosts();
-    },
+export const useQueryPosts = (): UseQueryResult<Post[]> =>
+  useQuery({
+    queryKey: [POSTS_QUERY],
+    queryFn: getPosts,
   });
-};
 
-export const useQueryPost = (id: number): UseQueryResult<Post> => {
-  return useQuery({
-    queryKey: ['post'],
+export const useQueryPost = (id: number): UseQueryResult<Post> =>
+  useQuery({
+    queryKey: [POST_QUERY, id],
     queryFn: async () => {
       return await getPost(id);
     },
   });
-};
 
 export const useAddPost = (): UseMutationResult<
-  Post | undefined,
+  void,
   Error,
   Post,
   {
@@ -96,14 +89,14 @@ export const useAddPost = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['add_post'],
+    mutationKey: [POST_MUTATION, POST_ADD],
     mutationFn: addPost,
     onMutate: async (post: Post) => {
-      await queryClient.cancelQueries({ queryKey: ['posts'] });
+      await queryClient.cancelQueries({ queryKey: [POSTS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<Post[] | undefined>(['posts']);
+      const prevVal = queryClient.getQueryData<Post[] | undefined>([POSTS_QUERY]);
 
-      queryClient.setQueryData(['posts'], (prev: Post[]) => [post, ...prev]);
+      queryClient.setQueryData([POSTS_QUERY], (prev: Post[]) => [post, ...prev]);
 
       return { prevVal };
     },
@@ -114,7 +107,7 @@ export const useAddPost = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['posts'], context?.prevVal);
+      queryClient.setQueryData([POSTS_QUERY], context?.prevVal);
     },
   });
 };
@@ -131,14 +124,14 @@ export const useDeletePost = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['delete_post'],
+    mutationKey: [POST_MUTATION, POST_DELETE],
     mutationFn: deletePost,
     onMutate: async (id: number) => {
-      await queryClient.cancelQueries({ queryKey: ['posts'] });
+      await queryClient.cancelQueries({ queryKey: [POSTS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<Post[] | undefined>(['posts']);
+      const prevVal = queryClient.getQueryData<Post[] | undefined>([POSTS_QUERY]);
 
-      queryClient.setQueryData(['posts'], (prev: Post[]) => prev.filter((post) => post.id !== id));
+      queryClient.setQueryData([POSTS_QUERY], (prev: Post[]) => prev.filter((post) => post.id !== id));
 
       return { prevVal };
     },
@@ -149,7 +142,7 @@ export const useDeletePost = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['posts'], context?.prevVal);
+      queryClient.setQueryData([POSTS_QUERY], context?.prevVal);
     },
   });
 };
@@ -166,24 +159,16 @@ export const useEditPost = (): UseMutationResult<
   const { setAlertProps } = useContext(GlobalContext);
 
   return useMutation({
-    mutationKey: ['edit_post'],
+    mutationKey: [POST_MUTATION, POST_EDIT],
     mutationFn: editPost,
     onMutate: async (editedPost: Post) => {
-      await queryClient.cancelQueries({ queryKey: ['posts'] });
+      await queryClient.cancelQueries({ queryKey: [POSTS_QUERY] });
 
-      const prevVal = queryClient.getQueryData<Post[] | undefined>(['posts']);
+      const prevVal = queryClient.getQueryData<Post[] | undefined>([POSTS_QUERY]);
 
-      const editedPostIndex = prevVal?.findIndex((post) => post.id === editedPost.id);
-
-      if (!editedPostIndex && editedPostIndex !== 0) return;
-
-      const updatedPosts = [
-        ...(prevVal ?? []).slice(0, editedPostIndex),
-        editedPost,
-        ...(prevVal ?? []).slice(editedPostIndex + 1),
-      ];
-
-      queryClient.setQueryData(['posts'], updatedPosts);
+      queryClient.setQueryData<Post[] | undefined>([POSTS_QUERY], (prev) =>
+        prev?.map((post) => (post.id === editedPost.id ? { ...post, ...editedPost } : post))
+      );
 
       return { prevVal };
     },
@@ -194,7 +179,7 @@ export const useEditPost = (): UseMutationResult<
 
     onError: (_, __, context) => {
       setAlertProps({ text: 'Error', type: 'error', position: 'top' });
-      queryClient.setQueryData(['posts'], context?.prevVal);
+      queryClient.setQueryData([POSTS_QUERY], context?.prevVal);
     },
   });
 };

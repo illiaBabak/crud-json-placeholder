@@ -91,6 +91,13 @@ $half-delete-btn-width: 74px;
       color: white;
       margin: 16px;
       padding: 12px;
+      cursor: pointer;
+
+      &:hover {
+        transform: scale(1.03);
+        transition: 0.25s;
+        border: 8px solid #234aa6;
+      }
     }
   }
 }

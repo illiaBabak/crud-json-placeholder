@@ -1,5 +1,5 @@
-import { useContext, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useContext, useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAddPost, useDeletePost, useEditPost, useQueryPosts } from 'src/api/posts';
 import { Page } from 'src/components/Page';
 import { GlobalContext } from 'src/root';
@@ -13,14 +13,14 @@ const DEFAULT_VALUES = {
   userId: 1,
 };
 
-const findPost = (posts: Post[] | undefined, searchVal: string) => {
-  const targetPost = posts?.filter(
+const findPosts = (posts: Post[] | undefined, searchVal: string) => {
+  const targetPosts = posts?.filter(
     (post) =>
       post.body.toLowerCase().includes(searchVal.toLowerCase()) ||
       post.title.toLowerCase().includes(searchVal.toLowerCase())
-  )[0];
+  );
 
-  return targetPost;
+  return targetPosts;
 };
 
 export const PostsPage = (): JSX.Element => {
@@ -28,9 +28,20 @@ export const PostsPage = (): JSX.Element => {
   const { data: posts, isLoading } = useQueryPosts();
   const [editedPost, setEditedPost] = useState<Post | null>(null);
   const [postValues, setPostValues] = useState<Post>(DEFAULT_VALUES);
-  const [searchVal, setSearchVal] = useState('');
+  const [seachParams, setSearchParams] = useSearchParams();
+  const searchText = seachParams.get('query');
+  const [filteredPosts, setFilteredPosts] = useState<Post[] | undefined>(posts);
   const navigate = useNavigate();
-  const { id } = useParams();
+
+  useEffect(() => {
+    const filtered = searchText ? findPosts(posts, searchText) : posts;
+
+    setFilteredPosts(filtered);
+
+    if (!posts) return;
+
+    if (!filtered?.length) setAlertProps({ text: 'Not found', position: 'top', type: 'warning' });
+  }, [posts, searchText, setAlertProps]);
 
   const { mutateAsync: createPost } = useAddPost();
 
@@ -44,28 +55,22 @@ export const PostsPage = (): JSX.Element => {
 
   const removeEdit = () => setEditedPost(null);
 
-  const searchPost = () => {
-    if (!searchVal) {
-      navigate('/posts');
-      return;
-    }
-
-    const searched = findPost(posts, searchVal);
-
-    if (searched) navigate(`/posts/:${searched?.id}`);
-    else {
-      setAlertProps({ text: 'Not found', type: 'warning', position: 'top' });
-      navigate('/posts');
-    }
-  };
-
   const searchPostInput = (
     <input
       type='text'
       className='search-input'
-      value={searchVal}
-      onChange={(e) => setSearchVal(e.currentTarget.value)}
-      onBlur={() => searchPost()}
+      onBlur={(e) => {
+        setAlertProps({ text: 'Success', position: 'top', type: 'success' });
+
+        if (!e.currentTarget.value) {
+          const params = new URLSearchParams(seachParams);
+          params.delete('query');
+          setSearchParams(params);
+          return;
+        }
+
+        setSearchParams({ query: e.currentTarget.value });
+      }}
       onKeyDown={(e) => {
         if (e.key === 'Enter') e.currentTarget.blur();
       }}
@@ -73,30 +78,36 @@ export const PostsPage = (): JSX.Element => {
   );
 
   const postElements =
-    (id ? posts?.filter((post) => post.id === Number(id.slice(1))) : posts)?.map((el, index) => {
-      if (id && index > 0) return <></>;
-
-      return (
-        <div className='list-el' key={`post-${el.title}-${index}`}>
-          <h3>{el.title}</h3>
-          <p>{el.body}</p>
-          <div className='container-el-btn'>
-            <div className='delete-el-btn' onClick={() => deletePost(el.id)}>
-              Delete
-            </div>
-            <div
-              className='edit-el-btn'
-              onClick={() => {
-                setShouldShowCreateWindow(true);
-                setEditedPost(el);
-              }}
-            >
-              Edit
-            </div>
+    filteredPosts?.map((el, index) => (
+      <div
+        className='list-el'
+        key={`post-${el.title}-${index}`}
+        onClick={() => navigate(`/posts/comments/:${index + 1}`)}
+      >
+        <h3>{el.title}</h3>
+        <p>{el.body}</p>
+        <div
+          className='container-el-btn'
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+        >
+          <div className='delete-el-btn' onClick={() => deletePost(el.id)}>
+            Delete
+          </div>
+          <div
+            className='edit-el-btn'
+            onClick={() => {
+              setShouldShowCreateWindow(true);
+              setEditedPost(el);
+            }}
+          >
+            Edit
           </div>
         </div>
-      );
-    }) ?? [];
+      </div>
+    )) ?? [];
 
   const postInputs = (
     <>
