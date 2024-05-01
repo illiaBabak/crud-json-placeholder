@@ -22,13 +22,16 @@ export const GlobalContext = createContext<GlobalContextType>({
 export const App = (): JSX.Element => {
   const [alertProps, setAlertProps] = useState<AlertProps | null>(null);
   const [shouldShowCreateWindow, setShouldShowCreateWindow] = useState(false);
+  const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    const timeoutId = setTimeout(() => {
+    const id = setTimeout(() => {
       setAlertProps(null);
     }, 5000);
 
-    return () => clearTimeout(timeoutId);
+    setTimeoutId(id);
+
+    return () => clearTimeout(id);
   }, [alertProps]);
 
   return (
@@ -48,7 +51,7 @@ export const App = (): JSX.Element => {
         </BrowserRouter>
       </GlobalContext.Provider>
 
-      {alertProps && <Alert onClose={() => setAlertProps(null)} {...alertProps} />}
+      {alertProps && <Alert onClose={() => setAlertProps(null)} {...alertProps} timeoutId={timeoutId} setTimeoutId={setTimeoutId}/>}
     </div>
   );
 };

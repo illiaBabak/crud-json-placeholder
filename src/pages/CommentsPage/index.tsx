@@ -28,7 +28,7 @@ export const CommentsPage = (): JSX.Element => {
   };
 
   const handleNextClick = () => {
-    if (parsedId.current === MAX_POSTS - 1) return;
+    if (parsedId.current === MAX_POSTS) return;
 
     navigate(`/posts/comments/:${parsedId.current + 1}`);
     window.location.reload();
@@ -63,7 +63,7 @@ export const CommentsPage = (): JSX.Element => {
                 Prev
               </div>
               <div
-                className={`comment-btn ${parsedId.current === MAX_POSTS - 1 ? 'disabled-btn' : ''}`}
+                className={`comment-btn ${parsedId.current === MAX_POSTS ? 'disabled-btn' : ''}`}
                 onClick={handleNextClick}
               >
                 Next
