@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAddPost, useDeletePost, useEditPost, useQueryPosts } from 'src/api/posts';
 import { Page } from 'src/components/Page';
 import { GlobalContext } from 'src/root';
 import { Post } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
+import { searchPredicate } from 'src/utils/searchPredicate';
 
 const DEFAULT_VALUES = {
   title: '',
@@ -13,47 +14,25 @@ const DEFAULT_VALUES = {
   userId: 1,
 };
 
-const findPosts = (posts: Post[] | undefined, searchVal: string) => {
-  const targetPosts = posts?.filter(
-    (post) =>
-      post.body.toLowerCase().includes(searchVal.toLowerCase()) ||
-      post.title.toLowerCase().includes(searchVal.toLowerCase())
-  );
-
-  return targetPosts;
-};
-
 export const PostsPage = (): JSX.Element => {
+  const [editedPost, setEditedPost] = useState<Post>(DEFAULT_VALUES);
   const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
+
   const { data: posts, isLoading } = useQueryPosts();
-  const [editedPost, setEditedPost] = useState<Post | null>(null);
-  const [postValues, setPostValues] = useState<Post>(DEFAULT_VALUES);
-  const [seachParams, setSearchParams] = useSearchParams();
-  const searchText = seachParams.get('query');
-  const [filteredPosts, setFilteredPosts] = useState<Post[] | undefined>(posts);
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const filtered = searchText ? findPosts(posts, searchText) : posts;
-
-    setFilteredPosts(filtered);
-
-    if (!posts) return;
-
-    if (!filtered?.length) setAlertProps({ text: 'Not found', position: 'top', type: 'warning' });
-  }, [posts, searchText, setAlertProps]);
 
   const { mutateAsync: createPost } = useAddPost();
-
   const { mutateAsync: deletePost } = useDeletePost();
-
   const { mutateAsync: editPost } = useEditPost();
 
-  const handleMutate = () => createPost({ ...postValues, id: posts?.length ?? 0 });
+  const navigate = useNavigate();
+  const [seachParams, setSearchParams] = useSearchParams();
+
+  const searchText = seachParams.get('query');
+  const filteredPosts = posts?.filter((post) => searchPredicate([post.title, post.body], searchText ?? ''));
+
+  const handleMutate = () => createPost({ ...editedPost, id: posts?.length ?? 0 });
 
   const handleEdit = () => editPost(editedPost ?? DEFAULT_VALUES);
-
-  const removeEdit = () => setEditedPost(null);
 
   const searchPostInput = (
     <input
@@ -63,9 +42,11 @@ export const PostsPage = (): JSX.Element => {
         setAlertProps({ text: 'Success', position: 'top', type: 'success' });
 
         if (!e.currentTarget.value) {
-          const params = new URLSearchParams(seachParams);
-          params.delete('query');
-          setSearchParams(params);
+          setSearchParams((prev) => {
+            prev.delete('query');
+            return prev;
+          });
+
           return;
         }
 
@@ -82,7 +63,7 @@ export const PostsPage = (): JSX.Element => {
       <div
         className='list-el'
         key={`post-${el.title}-${index}`}
-        onClick={() => navigate(`/posts/comments/:${index + 1}`)}
+        onClick={() => navigate(`/posts/comments/${index + 1}`)}
       >
         <h3>{el.title}</h3>
         <p>{el.body}</p>
@@ -109,33 +90,27 @@ export const PostsPage = (): JSX.Element => {
       </div>
     )) ?? [];
 
+  const handleInputChange = ({ currentTarget: { value, name } }: React.ChangeEvent<HTMLInputElement>) => {
+    setEditedPost((prev) => {
+      if (!prev) return prev;
+
+      return {
+        ...prev,
+        [name]: value,
+      };
+    });
+  };
+
   const postInputs = (
     <>
       <div className='create-window-row'>
         <h4>Title</h4>
         <input
           type='text'
+          name='title'
           className='create-window-input'
-          value={editedPost ? editedPost.title : postValues.title}
-          onChange={(e) => {
-            const val = e.currentTarget.value;
-
-            {
-              editedPost
-                ? setEditedPost((prev) => {
-                    if (!prev) return prev;
-
-                    return {
-                      ...prev,
-                      title: val,
-                    };
-                  })
-                : setPostValues((prev) => ({
-                    ...prev,
-                    title: val,
-                  }));
-            }
-          }}
+          value={editedPost.title}
+          onChange={handleInputChange}
         />
       </div>
 
@@ -143,27 +118,10 @@ export const PostsPage = (): JSX.Element => {
         <h4>Body</h4>
         <input
           type='text'
-          value={editedPost ? editedPost.body : postValues.body}
+          name='body'
+          value={editedPost.body}
           className='create-window-input'
-          onChange={(e) => {
-            const val = e.currentTarget.value;
-
-            {
-              editedPost
-                ? setEditedPost((prev) => {
-                    if (!prev) return prev;
-
-                    return {
-                      ...prev,
-                      body: val,
-                    };
-                  })
-                : setPostValues((prev) => ({
-                    ...prev,
-                    body: val,
-                  }));
-            }
-          }}
+          onChange={handleInputChange}
         />
       </div>
 
@@ -171,45 +129,26 @@ export const PostsPage = (): JSX.Element => {
         <h4>User ID</h4>
         <input
           type='number'
+          name='userId'
           className='create-window-input'
-          value={postValues.userId}
-          onChange={(e) => {
-            const val = Number(e.currentTarget.value);
-
-            {
-              editedPost
-                ? setEditedPost((prev) => {
-                    if (!prev) return prev;
-
-                    return {
-                      ...prev,
-                      userId: val,
-                    };
-                  })
-                : setPostValues((prev) => ({
-                    ...prev,
-                    userId: val,
-                  }));
-            }
-          }}
+          value={editedPost.userId}
+          onChange={handleInputChange}
         />
       </div>
     </>
   );
 
   return (
-    <>
-      <Page
-        title='posts'
-        isLoading={isLoading}
-        listElements={postElements}
-        changeData={editedPost ? handleEdit : handleMutate}
-        inputs={postInputs}
-        isDisabledBtn={editedPost ? hasEmptyField(editedPost) : hasEmptyField(postValues)}
-        isEdit={!!editedPost}
-        removeEdit={removeEdit}
-        searchInput={searchPostInput}
-      />
-    </>
+    <Page
+      title='posts'
+      isLoading={isLoading}
+      listElements={postElements}
+      changeData={editedPost.id ? handleEdit : handleMutate}
+      inputs={postInputs}
+      isDisabledBtn={hasEmptyField(editedPost)}
+      isEdit={!!editedPost.id}
+      onResetState={() => setEditedPost(DEFAULT_VALUES)}
+      searchInput={searchPostInput}
+    />
   );
 };

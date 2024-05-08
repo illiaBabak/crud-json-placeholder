@@ -304,7 +304,7 @@ export const UsersPage = (): JSX.Element => {
         changeData={editedUser ? handleEdit : handleMutate}
         isDisabledBtn={editedUser ? hasEmptyField(editedUser) : hasEmptyField(userValues)}
         isEdit={!!editedUser}
-        removeEdit={removeEdit}
+        onResetState={removeEdit}
         searchInput={searchUserInput}
       />
     </>

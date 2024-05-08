@@ -6,10 +6,10 @@ type Props = {
   changeData: () => void;
   inputs: JSX.Element;
   isDisabledBtn: boolean;
-  isEdit: boolean;
+  actionName: string;
 };
 
-export const CreateWindow = ({ titleWindow, changeData, inputs, isDisabledBtn, isEdit }: Props): JSX.Element => {
+export const CreateWindow = ({ titleWindow, changeData, inputs, isDisabledBtn, actionName }: Props): JSX.Element => {
   const { setShouldShowCreateWindow } = useContext(GlobalContext);
 
   return (
@@ -17,7 +17,7 @@ export const CreateWindow = ({ titleWindow, changeData, inputs, isDisabledBtn, i
       <div className='create-window' onClick={(e) => e.stopPropagation()}>
         <div className='create-window-row'>
           <h2 className='title-create-window'>
-            {isEdit ? 'Edit' : 'New'} {titleWindow}
+            {actionName} {titleWindow}
           </h2>
           <div className='close-window-btn' onClick={() => setShouldShowCreateWindow(false)}>
             x
@@ -37,7 +37,7 @@ export const CreateWindow = ({ titleWindow, changeData, inputs, isDisabledBtn, i
                 }
           }
         >
-          {isEdit ? 'Edit a' : 'Create a new'} {titleWindow}
+          {actionName} {titleWindow}
         </div>
       </div>
     </div>

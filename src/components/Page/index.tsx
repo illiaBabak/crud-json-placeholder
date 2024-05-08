@@ -12,7 +12,7 @@ type Props = {
   changeData: () => void;
   isDisabledBtn: boolean;
   isEdit: boolean;
-  removeEdit: () => void;
+  onResetState: () => void;
   searchInput: JSX.Element;
 };
 
@@ -24,7 +24,7 @@ export const Page = ({
   inputs,
   isDisabledBtn,
   isEdit,
-  removeEdit,
+  onResetState,
   searchInput,
 }: Props): JSX.Element => {
   const { shouldShowCreateWindow, setShouldShowCreateWindow } = useContext(GlobalContext);
@@ -42,7 +42,7 @@ export const Page = ({
           className='show-window-btn'
           onClick={() => {
             setShouldShowCreateWindow(true);
-            removeEdit?.();
+            onResetState?.();
           }}
         >
           Create a new {singularWord}
@@ -57,7 +57,7 @@ export const Page = ({
           changeData={changeData}
           inputs={inputs}
           isDisabledBtn={isDisabledBtn}
-          isEdit={isEdit}
+          actionName={isEdit ? 'Edit' : 'Create'}
         />
       )}
     </>

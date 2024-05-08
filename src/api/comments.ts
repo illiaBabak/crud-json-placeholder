@@ -23,7 +23,7 @@ const getComments = async (postId: number): Promise<CommentResponse | undefined>
 
 export const useCommentQuery = (id: number): UseQueryResult<CommentResponse | undefined, Error> => {
   return useQuery({
-    queryKey: [COMMENTS_QUERY],
+    queryKey: [COMMENTS_QUERY, id],
     queryFn: async () => {
       return await getComments(id);
     },

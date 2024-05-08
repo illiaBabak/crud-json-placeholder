@@ -24,12 +24,25 @@ export const App = (): JSX.Element => {
   const [shouldShowCreateWindow, setShouldShowCreateWindow] = useState(false);
   const [timeoutId, setTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
-  useEffect(() => {
+  const startAlertTimer = () => {
     const id = setTimeout(() => {
       setAlertProps(null);
     }, 5000);
 
     setTimeoutId(id);
+
+    return id;
+  };
+
+  const handleMouseEnter = () => {
+    if (!timeoutId) return;
+
+    clearTimeout(timeoutId);
+    setTimeoutId(null);
+  };
+
+  useEffect(() => {
+    const id = startAlertTimer();
 
     return () => clearTimeout(id);
   }, [alertProps]);
@@ -51,7 +64,14 @@ export const App = (): JSX.Element => {
         </BrowserRouter>
       </GlobalContext.Provider>
 
-      {alertProps && <Alert onClose={() => setAlertProps(null)} {...alertProps} timeoutId={timeoutId} setTimeoutId={setTimeoutId}/>}
+      {alertProps && (
+        <Alert
+          onClose={() => setAlertProps(null)}
+          {...alertProps}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={startAlertTimer}
+        />
+      )}
     </div>
   );
 };

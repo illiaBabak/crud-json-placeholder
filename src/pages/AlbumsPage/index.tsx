@@ -140,7 +140,7 @@ export const AlbumsPage = (): JSX.Element => {
       inputs={albumInputs}
       isDisabledBtn={editedAlbum ? hasEmptyField(editedAlbum) : hasEmptyField(albumValues)}
       isEdit={!!editedAlbum}
-      removeEdit={removeEdit}
+      onResetState={removeEdit}
       searchInput={searchAlbumInput}
     />
   );
