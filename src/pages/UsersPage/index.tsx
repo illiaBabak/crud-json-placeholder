@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAddUser, useDeleteUser, useEditUser, useQueryUsers } from 'src/api/users';
 import { Page } from 'src/components/Page';
 import { GlobalContext } from 'src/root';
 import { User } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
+import { searchPredicate } from 'src/utils/searchPredicate';
 
 const DEFAULT_VALUES = {
   address: {
@@ -23,84 +24,54 @@ const DEFAULT_VALUES = {
   id: 0,
 };
 
-const findUsers = (users: User[] | undefined, searchVal: string) => {
-  const targetUsers = users?.filter(
-    (user) =>
-      user.name.toLowerCase().includes(searchVal.toLowerCase()) ||
-      user.username.toLowerCase().includes(searchVal.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchVal.toLowerCase()) ||
-      user.phone.toLowerCase().includes(searchVal.toLowerCase()) ||
-      user.address.city.toLowerCase().includes(searchVal.toLowerCase()) ||
-      user.address.street.toLowerCase().includes(searchVal.toLowerCase()) ||
-      user.company.name.toLowerCase().includes(searchVal.toLowerCase())
-  );
-
-  return targetUsers;
-};
-
 export const UsersPage = (): JSX.Element => {
+  const [editedUser, setEditedUser] = useState<User>(DEFAULT_VALUES);
   const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
+
   const { data: users, isLoading } = useQueryUsers();
-  const [editedUser, setEditedUser] = useState<User | null>(null);
-  const [userValues, setUserValues] = useState<User>(DEFAULT_VALUES);
-  const [searchVal, setSearchVal] = useState('');
-  const [seachParams, setSearchParams] = useSearchParams();
-  const searchText = seachParams.get('query');
-  const [filteredUsers, setFilteredUsers] = useState<User[] | undefined>(users);
-
-  useEffect(() => {
-    const filtered = searchText ? findUsers(users, searchText) : users;
-
-    setFilteredUsers(filtered);
-
-    if (!users) return;
-
-    if (!filtered?.length) setAlertProps({ text: 'Not found', position: 'top', type: 'warning' });
-  }, [users, searchText, setAlertProps]);
 
   const { mutateAsync: addUser } = useAddUser();
-
   const { mutateAsync: deleteUser } = useDeleteUser();
-
   const { mutateAsync: editUser } = useEditUser();
 
-  const handleMutate = () => addUser({ ...userValues, id: users?.length ?? 0 });
+  const [seachParams, setSearchParams] = useSearchParams();
+
+  const searchText = seachParams.get('query');
+  const filteredUsers = users?.filter((user) =>
+    searchPredicate(
+      [user.address.city, user.address.street, user.company.name, user.email, user.name, user.phone, user.username],
+      searchText ?? ''
+    )
+  );
+
+  const handleMutate = () => addUser({ ...editedUser, id: users?.length ?? 0 });
 
   const handleEdit = () => editUser(editedUser ?? DEFAULT_VALUES);
 
-  const removeEdit = () => setEditedUser(null);
-
   const handleInputChange = (val: string, fieldName: string) => {
-    {
-      editedUser
-        ? setEditedUser((prev) => {
-            if (!prev) return prev;
+    setEditedUser((prev) => {
+      if (!prev) return prev;
 
-            return {
-              ...prev,
-              [fieldName]: val,
-            };
-          })
-        : setUserValues((prevState) => ({
-            ...prevState,
-            [fieldName]: val,
-          }));
-    }
+      return {
+        ...prev,
+        [fieldName]: val,
+      };
+    });
   };
 
   const searchUserInput = (
     <input
       type='text'
       className='search-input'
-      value={searchVal}
-      onChange={(e) => setSearchVal(e.currentTarget.value)}
       onBlur={(e) => {
         setAlertProps({ text: 'Success', position: 'top', type: 'success' });
 
         if (!e.currentTarget.value) {
-          const params = new URLSearchParams(seachParams);
-          params.delete('query');
-          setSearchParams(params);
+          setSearchParams((prev) => {
+            prev.delete('query');
+            return prev;
+          });
+
           return;
         }
 
@@ -155,7 +126,7 @@ export const UsersPage = (): JSX.Element => {
         <input
           type='text'
           className='create-window-input'
-          value={editedUser ? editedUser.username : userValues.username}
+          value={editedUser.username}
           onChange={(e) => handleInputChange(e.currentTarget.value, 'username')}
         />
       </div>
@@ -164,7 +135,7 @@ export const UsersPage = (): JSX.Element => {
         <h4>Name</h4>
         <input
           type='text'
-          value={editedUser ? editedUser.name : userValues.name}
+          value={editedUser.name}
           className='create-window-input'
           onChange={(e) => handleInputChange(e.currentTarget.value, 'name')}
         />
@@ -174,7 +145,7 @@ export const UsersPage = (): JSX.Element => {
         <h4>Email</h4>
         <input
           type='text'
-          value={editedUser ? editedUser.email : userValues.email}
+          value={editedUser.email}
           className='create-window-input'
           onChange={(e) => handleInputChange(e.currentTarget.value, 'email')}
         />
@@ -184,7 +155,7 @@ export const UsersPage = (): JSX.Element => {
         <h4>Phone</h4>
         <input
           type='text'
-          value={editedUser ? editedUser.phone : userValues.phone}
+          value={editedUser.phone}
           className='create-window-input'
           onChange={(e) => handleInputChange(e.currentTarget.value, 'phone')}
         />
@@ -194,32 +165,20 @@ export const UsersPage = (): JSX.Element => {
         <h4>Company name</h4>
         <input
           type='text'
-          value={editedUser ? editedUser.company.name : userValues.company.name}
+          value={editedUser.company.name}
           className='create-window-input'
           onChange={(e) => {
-            const val = e.currentTarget.value;
+            setEditedUser((prev) => {
+              if (!prev) return prev;
 
-            {
-              editedUser
-                ? setEditedUser((prev) => {
-                    if (!prev) return prev;
-
-                    return {
-                      ...prev,
-                      company: {
-                        ...prev.company,
-                        name: val,
-                      },
-                    };
-                  })
-                : setUserValues((prev) => ({
-                    ...prev,
-                    company: {
-                      ...prev.company,
-                      name: val,
-                    },
-                  }));
-            }
+              return {
+                ...prev,
+                company: {
+                  ...prev.company,
+                  city: e.currentTarget.value,
+                },
+              };
+            });
           }}
         />
       </div>
@@ -228,32 +187,20 @@ export const UsersPage = (): JSX.Element => {
         <h4>City</h4>
         <input
           type='text'
-          value={editedUser ? editedUser.address.city : userValues.address.city}
+          value={editedUser.address.city}
           className='create-window-input'
           onChange={(e) => {
-            const val = e.currentTarget.value;
+            setEditedUser((prev) => {
+              if (!prev) return prev;
 
-            {
-              editedUser
-                ? setEditedUser((prev) => {
-                    if (!prev) return prev;
-
-                    return {
-                      ...prev,
-                      address: {
-                        ...prev.address,
-                        city: val,
-                      },
-                    };
-                  })
-                : setUserValues((prev) => ({
-                    ...prev,
-                    address: {
-                      ...prev.address,
-                      city: val,
-                    },
-                  }));
-            }
+              return {
+                ...prev,
+                address: {
+                  ...prev.address,
+                  city: e.currentTarget.value,
+                },
+              };
+            });
           }}
         />
       </div>
@@ -262,32 +209,20 @@ export const UsersPage = (): JSX.Element => {
         <h4>Street</h4>
         <input
           type='text'
-          value={editedUser ? editedUser.address.street : userValues.address.street}
+          value={editedUser.address.street}
           className='create-window-input'
           onChange={(e) => {
-            const val = e.currentTarget.value;
+            setEditedUser((prev) => {
+              if (!prev) return prev;
 
-            {
-              editedUser
-                ? setEditedUser((prev) => {
-                    if (!prev) return prev;
-
-                    return {
-                      ...prev,
-                      address: {
-                        ...prev.address,
-                        street: val,
-                      },
-                    };
-                  })
-                : setUserValues((prev) => ({
-                    ...prev,
-                    address: {
-                      ...prev.address,
-                      street: val,
-                    },
-                  }));
-            }
+              return {
+                ...prev,
+                address: {
+                  ...prev.address,
+                  street: e.currentTarget.value,
+                },
+              };
+            });
           }}
         />
       </div>
@@ -301,10 +236,10 @@ export const UsersPage = (): JSX.Element => {
         isLoading={isLoading}
         listElements={usersElements}
         inputs={usersInputs}
-        changeData={editedUser ? handleEdit : handleMutate}
-        isDisabledBtn={editedUser ? hasEmptyField(editedUser) : hasEmptyField(userValues)}
-        isEdit={!!editedUser}
-        onResetState={removeEdit}
+        changeData={editedUser.id ? handleEdit : handleMutate}
+        isDisabledBtn={hasEmptyField(editedUser)}
+        isEdit={!!editedUser.id}
+        onResetState={() => setEditedUser(DEFAULT_VALUES)}
         searchInput={searchUserInput}
       />
     </>

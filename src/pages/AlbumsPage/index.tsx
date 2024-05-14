@@ -1,10 +1,11 @@
-import { useContext, useEffect, useState } from 'react';
+import { useContext, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useAddAlbum, useDeleteAlbum, useEditAlbum, useQueryAlbums } from 'src/api/albums';
 import { Page } from 'src/components/Page';
 import { GlobalContext } from 'src/root';
 import { Album } from 'src/types/types';
 import { hasEmptyField } from 'src/utils/hasEmptyFields';
+import { searchPredicate } from 'src/utils/searchPredicate';
 
 const DEFAULT_VALUES = {
   title: '',
@@ -12,57 +13,38 @@ const DEFAULT_VALUES = {
   id: 0,
 };
 
-const findAlbums = (albums: Album[] | undefined, searchVal: string) => {
-  const targetAlbums = albums?.filter((album) => album.title.toLowerCase().includes(searchVal.toLowerCase()));
-
-  return targetAlbums;
-};
-
 export const AlbumsPage = (): JSX.Element => {
-  const { data: albums, isLoading } = useQueryAlbums();
+  const [editedAlbum, setEditedAlbum] = useState<Album>(DEFAULT_VALUES);
   const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
-  const [editedAlbum, setEditedAlbum] = useState<Album | null>(null);
-  const [albumValues, setAlbumValues] = useState<Album>(DEFAULT_VALUES);
-  const [searchVal, setSearchVal] = useState('');
-  const [seachParams, setSearchParams] = useSearchParams();
-  const searchText = seachParams.get('query');
-  const [filteredAlbums, setFilteredAlbums] = useState<Album[] | undefined>(albums);
 
-  useEffect(() => {
-    const filtered = searchText ? findAlbums(albums, searchText) : albums;
-
-    setFilteredAlbums(filtered);
-
-    if (!albums) return;
-
-    if (!filtered?.length) setAlertProps({ text: 'Not found', position: 'top', type: 'warning' });
-  }, [albums, searchText, setAlertProps]);
+  const { data: albums, isLoading } = useQueryAlbums();
 
   const { mutateAsync: addAlbum } = useAddAlbum();
-
   const { mutateAsync: deleteAlbum } = useDeleteAlbum();
-
   const { mutateAsync: editAlbum } = useEditAlbum();
 
-  const handleMutate = () => addAlbum({ ...albumValues, id: albums?.length ?? 0 });
+  const [seachParams, setSearchParams] = useSearchParams();
+
+  const searchText = seachParams.get('query');
+  const filteredAlbums = albums?.filter((album) => searchPredicate([album.title], searchText ?? ''));
+
+  const handleMutate = () => addAlbum({ ...editedAlbum, id: albums?.length ?? 0 });
 
   const handleEdit = () => editAlbum(editedAlbum ?? DEFAULT_VALUES);
-
-  const removeEdit = () => setEditedAlbum(null);
 
   const searchAlbumInput = (
     <input
       type='text'
       className='search-input'
-      value={searchVal}
-      onChange={(e) => setSearchVal(e.currentTarget.value)}
       onBlur={(e) => {
         setAlertProps({ text: 'Success', position: 'top', type: 'success' });
 
         if (!e.currentTarget.value) {
-          const params = new URLSearchParams(seachParams);
-          params.delete('query');
-          setSearchParams(params);
+          setSearchParams((prev) => {
+            prev.delete('query');
+            return prev;
+          });
+
           return;
         }
 
@@ -106,25 +88,18 @@ export const AlbumsPage = (): JSX.Element => {
         <input
           type='text'
           className='create-window-input'
-          value={editedAlbum ? editedAlbum.title : albumValues.title}
+          value={editedAlbum.title}
           onChange={(e) => {
             const val = e.currentTarget.value;
 
-            {
-              editedAlbum
-                ? setEditedAlbum((prev) => {
-                    if (!prev) return prev;
+            setEditedAlbum((prev) => {
+              if (!prev) return prev;
 
-                    return {
-                      ...prev,
-                      title: val,
-                    };
-                  })
-                : setAlbumValues((prev) => ({
-                    ...prev,
-                    title: val,
-                  }));
-            }
+              return {
+                ...prev,
+                title: val,
+              };
+            });
           }}
         />
       </div>
@@ -136,11 +111,11 @@ export const AlbumsPage = (): JSX.Element => {
       title='albums'
       isLoading={isLoading}
       listElements={albumElements}
-      changeData={editedAlbum ? handleEdit : handleMutate}
+      changeData={editedAlbum.id ? handleEdit : handleMutate}
       inputs={albumInputs}
-      isDisabledBtn={editedAlbum ? hasEmptyField(editedAlbum) : hasEmptyField(albumValues)}
-      isEdit={!!editedAlbum}
-      onResetState={removeEdit}
+      isDisabledBtn={hasEmptyField(editedAlbum)}
+      isEdit={!!editedAlbum.id}
+      onResetState={() => setEditedAlbum(DEFAULT_VALUES)}
       searchInput={searchAlbumInput}
     />
   );
