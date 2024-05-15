@@ -49,6 +49,13 @@ export const Page = ({
         </div>
 
         {isLoading ? <Loader /> : <div className='list'>{listElements}</div>}
+
+        {!listElements.length && (
+          <div className='empty-container'>
+            <img src='https://cdn-icons-png.flaticon.com/512/1178/1178479.png' />
+            <p>Nothing found</p>
+          </div>
+        )}
       </div>
 
       {shouldShowCreateWindow && (

@@ -8,6 +8,21 @@ $half-delete-btn-width: 74px;
   justify-content: center;
   align-items: center;
 
+  .empty-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    font-size: 32px;
+    color: #234aa6;
+
+    img {
+      object-fit: contain;
+      width: 80px;
+      height: 80px;
+    }
+  }
+
   .list {
     display: flex;
     flex-direction: row;
