@@ -13,7 +13,6 @@ type Props = {
   isDisabledBtn: boolean;
   isEdit: boolean;
   onResetState: () => void;
-  searchInput: JSX.Element;
 };
 
 export const Page = ({
@@ -25,7 +24,6 @@ export const Page = ({
   isDisabledBtn,
   isEdit,
   onResetState,
-  searchInput,
 }: Props): JSX.Element => {
   const { shouldShowCreateWindow, setShouldShowCreateWindow } = useContext(GlobalContext);
   const singularWord = title
@@ -36,26 +34,30 @@ export const Page = ({
   return (
     <>
       <div className={`page-${title}`}>
-        <Header title={title} searchInput={searchInput} />
+        <Header title={title} />
 
-        <div
-          className='show-window-btn'
-          onClick={() => {
-            setShouldShowCreateWindow(true);
-            onResetState?.();
-          }}
-        >
-          Create a new {singularWord}
+        <div className='content-wrapper'>
+          {!isLoading && (
+            <div
+              className='show-window-btn'
+              onClick={() => {
+                setShouldShowCreateWindow(true);
+                onResetState?.();
+              }}
+            >
+              Create a new {singularWord}
+            </div>
+          )}
+
+          {isLoading ? <Loader /> : <div className='list'>{listElements}</div>}
+
+          {!listElements.length && !isLoading && (
+            <div className='empty-container'>
+              <img src='https://cdn-icons-png.flaticon.com/512/1178/1178479.png' />
+              <p>Nothing found</p>
+            </div>
+          )}
         </div>
-
-        {isLoading ? <Loader /> : <div className='list'>{listElements}</div>}
-
-        {!listElements.length && (
-          <div className='empty-container'>
-            <img src='https://cdn-icons-png.flaticon.com/512/1178/1178479.png' />
-            <p>Nothing found</p>
-          </div>
-        )}
       </div>
 
       {shouldShowCreateWindow && (

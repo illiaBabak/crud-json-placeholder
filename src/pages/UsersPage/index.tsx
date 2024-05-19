@@ -26,7 +26,7 @@ const DEFAULT_VALUES = {
 
 export const UsersPage = (): JSX.Element => {
   const [editedUser, setEditedUser] = useState<User>(DEFAULT_VALUES);
-  const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
+  const { setShouldShowCreateWindow } = useContext(GlobalContext);
 
   const { data: users, isLoading } = useQueryUsers();
 
@@ -34,7 +34,7 @@ export const UsersPage = (): JSX.Element => {
   const { mutateAsync: deleteUser } = useDeleteUser();
   const { mutateAsync: editUser } = useEditUser();
 
-  const [seachParams, setSearchParams] = useSearchParams();
+  const [seachParams] = useSearchParams();
 
   const searchText = seachParams.get('query');
   const filteredUsers = users?.filter((user) =>
@@ -49,39 +49,24 @@ export const UsersPage = (): JSX.Element => {
   const handleEdit = () => editUser(editedUser ?? DEFAULT_VALUES);
 
   const handleInputChange = (val: string, fieldName: string) => {
-    setEditedUser((prev) => {
-      if (!prev) return prev;
-
-      return {
-        ...prev,
-        [fieldName]: val,
-      };
-    });
+    setEditedUser((prev) => ({
+      ...prev,
+      [fieldName]: val,
+    }));
   };
 
-  const searchUserInput = (
-    <input
-      type='text'
-      className='search-input'
-      onBlur={(e) => {
-        setAlertProps({ text: 'Success', position: 'top', type: 'success' });
-
-        if (!e.currentTarget.value) {
-          setSearchParams((prev) => {
-            prev.delete('query');
-            return prev;
-          });
-
-          return;
-        }
-
-        setSearchParams({ query: e.currentTarget.value });
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur();
-      }}
-    />
-  );
+  const handleChangeNestedObj = (
+    { currentTarget: { name, value } }: React.ChangeEvent<HTMLInputElement>,
+    nestedObjName: 'address' | 'company'
+  ) => {
+    setEditedUser((prev) => ({
+      ...prev,
+      [nestedObjName]: {
+        ...prev[nestedObjName],
+        [name]: value,
+      },
+    }));
+  };
 
   const usersElements =
     filteredUsers?.map((user, index) => {
@@ -167,19 +152,8 @@ export const UsersPage = (): JSX.Element => {
           type='text'
           value={editedUser.company.name}
           className='create-window-input'
-          onChange={(e) => {
-            setEditedUser((prev) => {
-              if (!prev) return prev;
-
-              return {
-                ...prev,
-                company: {
-                  ...prev.company,
-                  city: e.currentTarget.value,
-                },
-              };
-            });
-          }}
+          name='name'
+          onChange={(e) => handleChangeNestedObj(e, 'company')}
         />
       </div>
 
@@ -189,19 +163,8 @@ export const UsersPage = (): JSX.Element => {
           type='text'
           value={editedUser.address.city}
           className='create-window-input'
-          onChange={(e) => {
-            setEditedUser((prev) => {
-              if (!prev) return prev;
-
-              return {
-                ...prev,
-                address: {
-                  ...prev.address,
-                  city: e.currentTarget.value,
-                },
-              };
-            });
-          }}
+          name='city'
+          onChange={(e) => handleChangeNestedObj(e, 'address')}
         />
       </div>
 
@@ -211,19 +174,8 @@ export const UsersPage = (): JSX.Element => {
           type='text'
           value={editedUser.address.street}
           className='create-window-input'
-          onChange={(e) => {
-            setEditedUser((prev) => {
-              if (!prev) return prev;
-
-              return {
-                ...prev,
-                address: {
-                  ...prev.address,
-                  street: e.currentTarget.value,
-                },
-              };
-            });
-          }}
+          name='street'
+          onChange={(e) => handleChangeNestedObj(e, 'address')}
         />
       </div>
     </>
@@ -240,7 +192,6 @@ export const UsersPage = (): JSX.Element => {
         isDisabledBtn={hasEmptyField(editedUser)}
         isEdit={!!editedUser.id}
         onResetState={() => setEditedUser(DEFAULT_VALUES)}
-        searchInput={searchUserInput}
       />
     </>
   );

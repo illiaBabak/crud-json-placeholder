@@ -26,18 +26,16 @@ export const CreateWindow = ({ titleWindow, changeData, inputs, isDisabledBtn, a
 
         <div>{inputs}</div>
 
-        <div
-          className={`create-btn ${isDisabledBtn ? 'disabled-btn' : ''}`}
-          onClick={
-            isDisabledBtn
-              ? () => {}
-              : () => {
-                  setShouldShowCreateWindow(false);
-                  changeData();
-                }
-          }
-        >
-          {actionName} {titleWindow}
+        <div className={`btn-wrapper ${isDisabledBtn ? 'disabled-btn' : ''}`}>
+          <div
+            className='create-btn'
+            onClick={() => {
+              setShouldShowCreateWindow(false);
+              changeData();
+            }}
+          >
+            {actionName} {titleWindow}
+          </div>
         </div>
       </div>
     </div>

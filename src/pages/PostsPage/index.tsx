@@ -16,7 +16,7 @@ const DEFAULT_VALUES = {
 
 export const PostsPage = (): JSX.Element => {
   const [editedPost, setEditedPost] = useState<Post>(DEFAULT_VALUES);
-  const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
+  const { setShouldShowCreateWindow } = useContext(GlobalContext);
 
   const { data: posts, isLoading } = useQueryPosts();
 
@@ -25,7 +25,7 @@ export const PostsPage = (): JSX.Element => {
   const { mutateAsync: editPost } = useEditPost();
 
   const navigate = useNavigate();
-  const [seachParams, setSearchParams] = useSearchParams();
+  const [seachParams] = useSearchParams();
 
   const searchText = seachParams.get('query');
   const filteredPosts = posts?.filter((post) => searchPredicate([post.title, post.body], searchText ?? ''));
@@ -33,30 +33,6 @@ export const PostsPage = (): JSX.Element => {
   const handleMutate = () => createPost({ ...editedPost, id: posts?.length ?? 0 });
 
   const handleEdit = () => editPost(editedPost ?? DEFAULT_VALUES);
-
-  const searchPostInput = (
-    <input
-      type='text'
-      className='search-input'
-      onBlur={(e) => {
-        setAlertProps({ text: 'Success', position: 'top', type: 'success' });
-
-        if (!e.currentTarget.value) {
-          setSearchParams((prev) => {
-            prev.delete('query');
-            return prev;
-          });
-
-          return;
-        }
-
-        setSearchParams({ query: e.currentTarget.value });
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur();
-      }}
-    />
-  );
 
   const postElements =
     filteredPosts?.map((el, index) => (
@@ -148,7 +124,6 @@ export const PostsPage = (): JSX.Element => {
       isDisabledBtn={hasEmptyField(editedPost)}
       isEdit={!!editedPost.id}
       onResetState={() => setEditedPost(DEFAULT_VALUES)}
-      searchInput={searchPostInput}
     />
   );
 };

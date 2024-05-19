@@ -5,8 +5,20 @@ $half-delete-btn-width: 74px;
 .page-users {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
+  height: 100%;
+
+  .content-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    margin-top: 16px;
+  }
 
   .empty-container {
     display: flex;
@@ -15,6 +27,8 @@ $half-delete-btn-width: 74px;
     gap: 8px;
     font-size: 32px;
     color: #234aa6;
+    width: 100%;
+    height: 100%;
 
     img {
       object-fit: contain;
@@ -30,6 +44,7 @@ $half-delete-btn-width: 74px;
     justify-content: center;
     align-items: center;
     margin-top: 16px;
+    overflow: hidden scroll;
 
     .list-el,
     .user-el {
@@ -42,7 +57,7 @@ $half-delete-btn-width: 74px;
         align-items: center;
         width: 100%;
         position: absolute;
-        top: 70%;
+        bottom: 0;
 
         .delete-el-btn,
         .edit-el-btn {
@@ -80,6 +95,7 @@ $half-delete-btn-width: 74px;
     color: white;
     width: 160px;
     height: 50px;
+    flex-shrink: 0;
     margin-top: 24px;
     cursor: pointer;
 
@@ -133,10 +149,6 @@ $half-delete-btn-width: 74px;
       color: white;
       margin: 16px;
       padding: 8px;
-
-      .container-el-btn {
-        top: 60%;
-      }
     }
   }
 }
@@ -171,10 +183,6 @@ $half-delete-btn-width: 74px;
           flex-direction: column;
           height: 200px;
         }
-      }
-
-      .container-el-btn {
-        top: 77%;
       }
     }
   }

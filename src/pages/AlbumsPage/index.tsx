@@ -15,7 +15,7 @@ const DEFAULT_VALUES = {
 
 export const AlbumsPage = (): JSX.Element => {
   const [editedAlbum, setEditedAlbum] = useState<Album>(DEFAULT_VALUES);
-  const { setShouldShowCreateWindow, setAlertProps } = useContext(GlobalContext);
+  const { setShouldShowCreateWindow } = useContext(GlobalContext);
 
   const { data: albums, isLoading } = useQueryAlbums();
 
@@ -23,7 +23,7 @@ export const AlbumsPage = (): JSX.Element => {
   const { mutateAsync: deleteAlbum } = useDeleteAlbum();
   const { mutateAsync: editAlbum } = useEditAlbum();
 
-  const [seachParams, setSearchParams] = useSearchParams();
+  const [seachParams] = useSearchParams();
 
   const searchText = seachParams.get('query');
   const filteredAlbums = albums?.filter((album) => searchPredicate([album.title], searchText ?? ''));
@@ -31,30 +31,6 @@ export const AlbumsPage = (): JSX.Element => {
   const handleMutate = () => addAlbum({ ...editedAlbum, id: albums?.length ?? 0 });
 
   const handleEdit = () => editAlbum(editedAlbum ?? DEFAULT_VALUES);
-
-  const searchAlbumInput = (
-    <input
-      type='text'
-      className='search-input'
-      onBlur={(e) => {
-        setAlertProps({ text: 'Success', position: 'top', type: 'success' });
-
-        if (!e.currentTarget.value) {
-          setSearchParams((prev) => {
-            prev.delete('query');
-            return prev;
-          });
-
-          return;
-        }
-
-        setSearchParams({ query: e.currentTarget.value });
-      }}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') e.currentTarget.blur();
-      }}
-    />
-  );
 
   const albumElements =
     filteredAlbums?.map((album, index) => {
@@ -116,7 +92,6 @@ export const AlbumsPage = (): JSX.Element => {
       isDisabledBtn={hasEmptyField(editedAlbum)}
       isEdit={!!editedAlbum.id}
       onResetState={() => setEditedAlbum(DEFAULT_VALUES)}
-      searchInput={searchAlbumInput}
     />
   );
 };

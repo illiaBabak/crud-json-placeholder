@@ -59,29 +59,35 @@
       }
     }
 
-    .create-btn {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 170px;
-      height: 30px;
-      border: 4px solid #3867d6;
-      border-radius: 2px;
-      cursor: pointer;
+    .btn-wrapper {
+      .create-btn {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 170px;
+        height: 30px;
+        border: 4px solid #3867d6;
+        border-radius: 2px;
+        cursor: pointer;
 
-      &:hover {
-        transform: scale(1.05);
-        transition: 0.25s;
+        &:hover {
+          transform: scale(1.05);
+          transition: 0.25s;
+        }
       }
-    }
 
-    .disabled-btn {
-      cursor: not-allowed;
-      filter: grayscale(90%);
+      &.disabled-btn {
+        cursor: not-allowed;
 
-      &:hover {
-        transform: scale(1);
-        transition: 0s;
+        .create-btn {
+          filter: grayscale(90%);
+          pointer-events: none;
+
+          &:hover {
+            transform: scale(1);
+            transition: 0s;
+          }
+        }
       }
     }
   }
