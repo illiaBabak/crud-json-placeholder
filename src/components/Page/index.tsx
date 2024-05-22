@@ -9,7 +9,7 @@ type Props = {
   listElements: JSX.Element[];
   isLoading: boolean;
   inputs: JSX.Element;
-  changeData: () => void;
+  onChangeData: () => void;
   isDisabledBtn: boolean;
   isEdit: boolean;
   onResetState: () => void;
@@ -19,7 +19,7 @@ export const Page = ({
   title,
   listElements,
   isLoading,
-  changeData,
+  onChangeData,
   inputs,
   isDisabledBtn,
   isEdit,
@@ -63,7 +63,7 @@ export const Page = ({
       {shouldShowCreateWindow && (
         <CreateWindow
           titleWindow={singularWord}
-          changeData={changeData}
+          changeData={onChangeData}
           inputs={inputs}
           isDisabledBtn={isDisabledBtn}
           actionName={isEdit ? 'Edit' : 'Create'}

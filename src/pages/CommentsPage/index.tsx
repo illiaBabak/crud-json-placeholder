@@ -16,13 +16,13 @@ export const CommentsPage = (): JSX.Element => {
   const handlePrevClick = () => {
     if (parsedId === 1) return;
 
-    navigate(`/posts/comments/${parsedId - 1}`);
+    navigate(`../comments/${parsedId - 1}`);
   };
 
   const handleNextClick = () => {
     if (parsedId === MAX_POSTS) return;
 
-    navigate(`/posts/comments/${parsedId + 1}`);
+    navigate(`../comments/${parsedId + 1}`);
   };
 
   return (
@@ -52,7 +52,7 @@ export const CommentsPage = (): JSX.Element => {
 
           <div className='list-wrapper'>
             <div className='list'>
-              {commentsData?.comments?.map((comment) => (
+              {commentsData?.map((comment) => (
                 <div className='comment' key={`comment-${comment.id}-${comment.email}`}>
                   <h4>{comment.name}</h4>
                   <p className='comment-content'>{comment.body}</p>

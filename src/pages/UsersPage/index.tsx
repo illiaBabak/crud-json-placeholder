@@ -37,21 +37,21 @@ export const UsersPage = (): JSX.Element => {
   const [seachParams] = useSearchParams();
 
   const searchText = seachParams.get('query');
-  const filteredUsers = users?.filter((user) =>
-    searchPredicate(
-      [user.address.city, user.address.street, user.company.name, user.email, user.name, user.phone, user.username],
-      searchText ?? ''
-    )
-  );
+  const filteredUsers = users?.filter((user) => {
+    const { address, company, email, name, phone, username } = user;
+    const { city, street } = address;
+
+    return searchPredicate([city, street, company.name, email, name, phone, username], searchText ?? '');
+  });
 
   const handleMutate = () => addUser({ ...editedUser, id: users?.length ?? 0 });
 
   const handleEdit = () => editUser(editedUser ?? DEFAULT_VALUES);
 
-  const handleInputChange = (val: string, fieldName: string) => {
+  const handleInputChange = ({ currentTarget: { value, name } }: React.ChangeEvent<HTMLInputElement>) => {
     setEditedUser((prev) => ({
       ...prev,
-      [fieldName]: val,
+      [name]: value,
     }));
   };
 
@@ -70,24 +70,27 @@ export const UsersPage = (): JSX.Element => {
 
   const usersElements =
     filteredUsers?.map((user, index) => {
+      const { address, company, email, name, phone, username, id } = user;
+      const { city, street } = address;
+
       return (
-        <div className='user-el' key={`user-${user.email}-${index}-${user.id}`}>
-          <h2>Username: {user.username}</h2>
+        <div className='user-el' key={`user-${email}-${index}-${id}`}>
+          <h2>Username: {username}</h2>
           <div className='user-row'>
             <div className='user-col'>
-              <p>Name: {user.name}</p>
-              <p>Email: {user.email}</p>
-              <p>Phone: {user.phone}</p>
+              <p>Name: {name}</p>
+              <p>Email: {email}</p>
+              <p>Phone: {phone}</p>
             </div>
             <div className='user-col'>
-              <p>Company name: {user.company.name}</p>
-              <p>City: {user.address.city}</p>
-              <p>Street: {user.address.street}</p>
+              <p>Company name: {company.name}</p>
+              <p>City: {city}</p>
+              <p>Street: {street}</p>
             </div>
           </div>
 
           <div className='container-el-btn'>
-            <div className='delete-el-btn' onClick={() => deleteUser(user.id)}>
+            <div className='delete-el-btn' onClick={() => deleteUser(id)}>
               Delete
             </div>
             <div
@@ -112,7 +115,8 @@ export const UsersPage = (): JSX.Element => {
           type='text'
           className='create-window-input'
           value={editedUser.username}
-          onChange={(e) => handleInputChange(e.currentTarget.value, 'username')}
+          name='username'
+          onChange={handleInputChange}
         />
       </div>
 
@@ -122,7 +126,8 @@ export const UsersPage = (): JSX.Element => {
           type='text'
           value={editedUser.name}
           className='create-window-input'
-          onChange={(e) => handleInputChange(e.currentTarget.value, 'name')}
+          name='name'
+          onChange={handleInputChange}
         />
       </div>
 
@@ -132,7 +137,8 @@ export const UsersPage = (): JSX.Element => {
           type='text'
           value={editedUser.email}
           className='create-window-input'
-          onChange={(e) => handleInputChange(e.currentTarget.value, 'email')}
+          name='email'
+          onChange={handleInputChange}
         />
       </div>
 
@@ -142,7 +148,8 @@ export const UsersPage = (): JSX.Element => {
           type='text'
           value={editedUser.phone}
           className='create-window-input'
-          onChange={(e) => handleInputChange(e.currentTarget.value, 'phone')}
+          name='phone'
+          onChange={handleInputChange}
         />
       </div>
 
@@ -188,7 +195,7 @@ export const UsersPage = (): JSX.Element => {
         isLoading={isLoading}
         listElements={usersElements}
         inputs={usersInputs}
-        changeData={editedUser.id ? handleEdit : handleMutate}
+        onChangeData={editedUser.id ? handleEdit : handleMutate}
         isDisabledBtn={hasEmptyField(editedUser)}
         isEdit={!!editedUser.id}
         onResetState={() => setEditedUser(DEFAULT_VALUES)}

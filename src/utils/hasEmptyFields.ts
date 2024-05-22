@@ -1,9 +1,7 @@
-import { Album, Post, User, UserAddress, UserCompany } from 'src/types/types';
-import { isString, isUserAddress, isUserCompany } from './guards';
+import { isString, isStringsMap } from './guards';
 
-export const hasEmptyField = (values: User | Album | Post | UserCompany | UserAddress): boolean => {
-  return Object.values(values).some((el) => {
+export const hasEmptyField = (values: Record<string, unknown>): boolean =>
+  Object.values(values).some((el) => {
     if (isString(el)) return el.trim() === '';
-    else if (isUserAddress(el) || isUserCompany(el)) return hasEmptyField(el);
+    else if (isStringsMap(el)) return hasEmptyField(el);
   });
-};

@@ -72,9 +72,7 @@ export const useQueryPosts = (): UseQueryResult<Post[]> =>
 export const useQueryPost = (id: number): UseQueryResult<Post> =>
   useQuery({
     queryKey: [POST_QUERY, id],
-    queryFn: async () => {
-      return await getPost(id);
-    },
+    queryFn: async () => await getPost(id),
   });
 
 export const useAddPost = (): UseMutationResult<

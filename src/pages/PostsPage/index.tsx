@@ -36,11 +36,7 @@ export const PostsPage = (): JSX.Element => {
 
   const postElements =
     filteredPosts?.map((el, index) => (
-      <div
-        className='list-el'
-        key={`post-${el.title}-${index}`}
-        onClick={() => navigate(`/posts/comments/${index + 1}`)}
-      >
+      <div className='list-el' key={`post-${el.title}-${index}`} onClick={() => navigate(`./comments/${index + 1}`)}>
         <h3>{el.title}</h3>
         <p>{el.body}</p>
         <div
@@ -119,7 +115,7 @@ export const PostsPage = (): JSX.Element => {
       title='posts'
       isLoading={isLoading}
       listElements={postElements}
-      changeData={editedPost.id ? handleEdit : handleMutate}
+      onChangeData={editedPost.id ? handleEdit : handleMutate}
       inputs={postInputs}
       isDisabledBtn={hasEmptyField(editedPost)}
       isEdit={!!editedPost.id}

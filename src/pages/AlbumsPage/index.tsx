@@ -33,29 +33,27 @@ export const AlbumsPage = (): JSX.Element => {
   const handleEdit = () => editAlbum(editedAlbum ?? DEFAULT_VALUES);
 
   const albumElements =
-    filteredAlbums?.map((album, index) => {
-      return (
-        <div className='list-el' key={`album-${album.title}-${index}`}>
-          <h3>{album.title}</h3>
-          <div className='container-el-btn'>
-            <div className='delete-el-btn' onClick={() => deleteAlbum(album.id)}>
-              Delete
-            </div>
-            <div
-              className='edit-el-btn'
-              onClick={() => {
-                setShouldShowCreateWindow(true);
-                setEditedAlbum(album);
-              }}
-            >
-              Edit
-            </div>
+    filteredAlbums?.map((album, index) => (
+      <div className='list-el' key={`album-${album.title}-${index}`}>
+        <h3>{album.title}</h3>
+        <div className='container-el-btn'>
+          <div className='delete-el-btn' onClick={() => deleteAlbum(album.id)}>
+            Delete
           </div>
-
-          <div></div>
+          <div
+            className='edit-el-btn'
+            onClick={() => {
+              setShouldShowCreateWindow(true);
+              setEditedAlbum(album);
+            }}
+          >
+            Edit
+          </div>
         </div>
-      );
-    }) ?? [];
+
+        <div></div>
+      </div>
+    )) ?? [];
 
   const albumInputs = (
     <>
@@ -65,15 +63,13 @@ export const AlbumsPage = (): JSX.Element => {
           type='text'
           className='create-window-input'
           value={editedAlbum.title}
-          onChange={(e) => {
-            const val = e.currentTarget.value;
-
+          onChange={({ currentTarget: { value } }) => {
             setEditedAlbum((prev) => {
               if (!prev) return prev;
 
               return {
                 ...prev,
-                title: val,
+                title: value,
               };
             });
           }}
@@ -87,7 +83,7 @@ export const AlbumsPage = (): JSX.Element => {
       title='albums'
       isLoading={isLoading}
       listElements={albumElements}
-      changeData={editedAlbum.id ? handleEdit : handleMutate}
+      onChangeData={editedAlbum.id ? handleEdit : handleMutate}
       inputs={albumInputs}
       isDisabledBtn={hasEmptyField(editedAlbum)}
       isEdit={!!editedAlbum.id}

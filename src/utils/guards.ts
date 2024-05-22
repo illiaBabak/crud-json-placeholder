@@ -1,6 +1,6 @@
 import { Post, Album, User, UserAddress, UserCompany, Comment } from 'src/types/types';
 
-const isObj = (val: unknown): val is object => !!val && typeof val === 'object';
+export const isObj = (val: unknown): val is object => !!val && typeof val === 'object';
 
 export const isString = (val: unknown): val is string => typeof val === 'string';
 
@@ -91,3 +91,6 @@ export const isComment = (data: unknown): data is Comment => {
 export const isCommentArr = (data: unknown): data is Comment[] => {
   return Array.isArray(data) && data.every((el) => isComment(el));
 };
+
+export const isStringsMap = (data: unknown): data is Record<string, unknown> =>
+  isObj(data) && Object.keys(data).every((key) => isString(key));
