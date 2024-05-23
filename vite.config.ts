@@ -4,6 +4,7 @@ import checker from 'vite-plugin-checker';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  base: '/crud-json-placeholder',
   build: {
     outDir: 'build',
     emptyOutDir: true,
